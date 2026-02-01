@@ -1,0 +1,57 @@
+# --- .NET / Visual Studio ---
+[Bb]in/
+[Oo]bj/
+out/
+.vscode/
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+.lock-wscript
+.vs/
+
+
+
+# --- Node / Angular ---
+node_modules/
+dist/
+.angular/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.parcel-cache/
+.cache/
+
+# --- OS specific ---
+.DS_Store
+Thumbs.db
+
+# --- Docker ---
+.docker/
+
+# --- Environment Secrets ---
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+appsettings.Development.json
+appsettings.Local.json
+# Ignoruj pliki .env w podfolderach (np. w scripts/)
+**/scripts/.env
+appsettings.Development.json
+appsettings.Local.json
+
+# --- Databases & Infrastructure ---
+*.db
+*.db-shm
+*.db-wal
+# Ignoruj dane bazy danych (Docker local folder)
+pgdata/
+# Ignoruj skrypt inicjalizacyjny, jesli zawiera wrażliwe dane
+init-db.sql
+
+# --- Docker ---
+.docker/
