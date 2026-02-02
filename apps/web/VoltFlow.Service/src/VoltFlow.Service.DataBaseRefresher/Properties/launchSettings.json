@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "VoltFlow.Service.DataBaseRefresher": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
