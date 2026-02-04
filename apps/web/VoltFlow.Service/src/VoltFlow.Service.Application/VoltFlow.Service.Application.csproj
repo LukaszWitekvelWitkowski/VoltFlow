@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\VoltFlow.Service.Core\VoltFlow.Service.Core.csproj" />
+  </ItemGroup>
+
 </Project>
