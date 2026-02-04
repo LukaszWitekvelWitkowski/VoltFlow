@@ -26,7 +26,11 @@ namespace VoltFlow.Service.API
 
             services.AddCors(c =>
             {
-                c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin());
+                c.AddPolicy("AllowAngularApp", options =>
+                                                         options.AllowAnyOrigin()
+                                                                .AllowAnyHeader()
+                                                                .AllowAnyMethod()
+                 );
             });
 
             services.AddEndpointsApiExplorer();
@@ -41,24 +45,33 @@ namespace VoltFlow.Service.API
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                });
             }
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
-            app.UseCors("AllowAngularApp"); 
+            app.UseCors("AllowAngularApp");
 
+            // developer convenience: redirect root URL to Swagger UI
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/")
+                {
+                    context.Response.Redirect("/swagger");
+                    return;
+                }
+
+                await next();
+            });
 
             app.UseAuthentication(); 
             app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
@@ -66,6 +79,10 @@ namespace VoltFlow.Service.API
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
         }
     }

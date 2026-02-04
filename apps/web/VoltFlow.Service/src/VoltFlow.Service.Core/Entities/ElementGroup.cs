@@ -5,8 +5,6 @@
         public int IdElementGroup { get; set; }
         public string Name { get; set; } = string.Empty;
         public bool IsObsolete { get; set; }
-
-        // Relacje
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
 
