@@ -1,6 +1,25 @@
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+using VoltFlow.Service.API;
 
-app.MapGet("/", () => "Hello World!");
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        try
+        {
+            var host = CreateHostBuilder(args).Build();
+            host.Run();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Application failed to start: {ex.Message}");
+            throw;
+        }
+    }
 
-app.Run();
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+        Host.CreateDefaultBuilder(args)
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseStartup<Startup>();
+            });
+}
