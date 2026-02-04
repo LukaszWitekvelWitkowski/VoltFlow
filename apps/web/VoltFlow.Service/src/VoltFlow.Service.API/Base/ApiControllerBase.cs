@@ -29,6 +29,7 @@ namespace VoltFlow.Service.API.Base
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+
             }
         }
     }

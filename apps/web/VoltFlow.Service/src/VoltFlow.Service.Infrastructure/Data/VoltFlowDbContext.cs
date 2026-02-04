@@ -3,9 +3,9 @@ using VoltFlow.Service.Core.Entities;
 
 namespace VoltFlow.Service.Infrastructure.Data;
 
-public partial class PortfolioDbContext : DbContext
+public partial class VoltFlowDbContext : DbContext
 {
-    public PortfolioDbContext(DbContextOptions<PortfolioDbContext> options)
+    public VoltFlowDbContext(DbContextOptions<VoltFlowDbContext> options)
         : base(options)
     {
     }

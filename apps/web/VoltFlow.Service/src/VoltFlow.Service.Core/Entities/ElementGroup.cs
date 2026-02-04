@@ -8,6 +8,6 @@
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
 
-        public ICollection<Element> Elements { get; set; } = new List<Element>();
+        public ICollection<Element> Elements { get; set; } = [];
     }
 }

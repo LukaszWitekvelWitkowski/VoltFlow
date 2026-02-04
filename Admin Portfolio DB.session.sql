@@ -168,3 +168,29 @@ CREATE TABLE ErrorLog (
     ContextTypeId SMALLINT NOT NULL,
     ContextId INTEGER NOT NULL
 );
+
+
+INSERT INTO categorie ("IdCategory", "Name", "IsObsolete") VALUES
+(1, 'Elektronika', false),
+(2, 'Podzespoły Mechaniczne', false),
+(3, 'Materiały Eksploatacyjne', true);
+
+INSERT INTO ElementGroup (IdElementGroup, Name, IsObsolete, CategoryId)
+VALUES 
+(1, 'Rezystory', false, 1),
+(2, 'Łożyska Kulkowe', false, 2),
+(3, 'Kable i Przewody', false, 1);
+
+
+
+-- 2. Tabela ELEMENTGROUP (powiązana z Category)
+INSERT INTO "ElementGroup" ("IdElementGroup", "Name", "IsObsolete", "CategoryId") VALUES
+(1, 'Rezystory', false, 1),
+(2, 'Łożyska Kulkowe', false, 2),
+(3, 'Kable i Przewody', false, 1);
+
+-- 3. Tabela ELEMENT (powiązana z ElementGroup)
+INSERT INTO Element (IdElement, Name, Description, IsObsolete, ElementGroupId) VALUES
+(1, 'Rezystor 10k Ohm', 'Rezystor węglowy 0.25W', false, 1),
+(2, 'Łożysko 608-ZZ', 'Łożysko do silników elektrycznych', false, 2),
+(3, 'Przewód miedziany 1.5mm', 'Przewód instalacyjny jednożyłowy', false, 3);
