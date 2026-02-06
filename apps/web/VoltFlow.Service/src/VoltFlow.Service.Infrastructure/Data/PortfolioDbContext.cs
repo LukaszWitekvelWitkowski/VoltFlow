@@ -46,6 +46,7 @@ public partial class PortfolioDbContext : DbContext
     {
         modelBuilder.Entity<Category>(entity =>
         {
+            entity.ToTable("category");
             entity.HasKey(e => e.IdCategory).HasName("categories_pkey");
 
             entity.Property(e => e.Name).HasMaxLength(100);
@@ -53,6 +54,7 @@ public partial class PortfolioDbContext : DbContext
 
         modelBuilder.Entity<Client>(entity =>
         {
+            entity.ToTable("client");
             entity.HasKey(e => e.IdClient).HasName("clients_pkey");
 
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -214,7 +216,7 @@ public partial class PortfolioDbContext : DbContext
                 .HasForeignKey(d => d.JobId)
                 .HasConstraintName("fk_transaction_job");
 
-            entity.HasOne(d => d.Source).WithMany(p => p.Transactions)
+            entity.HasOne(d => d.Source).WithMany(p => p.IncomingTransactions)
                 .HasForeignKey(d => d.SourceId)
                 .HasConstraintName("fk_transaction_source");
 
@@ -223,7 +225,7 @@ public partial class PortfolioDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_transaction_stock");
 
-            entity.HasOne(d => d.Target).WithMany(p => p.Transactions)
+            entity.HasOne(d => d.Target).WithMany(p => p.OutgoingTransactions)
                 .HasForeignKey(d => d.TargetId)
                 .HasConstraintName("fk_transaction_target");
         });
@@ -245,6 +247,8 @@ public partial class PortfolioDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
+
+            entity.ToTable("user");
             entity.HasKey(e => e.IdUser).HasName("users_pkey");
 
             entity.Property(e => e.Email).HasMaxLength(100);
