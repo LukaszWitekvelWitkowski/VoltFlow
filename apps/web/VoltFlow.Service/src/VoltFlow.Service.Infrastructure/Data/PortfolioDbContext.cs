@@ -46,7 +46,7 @@ public partial class PortfolioDbContext : DbContext
     {
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.ToTable("category");
+            entity.ToTable("Category");
             entity.HasKey(e => e.IdCategory).HasName("categories_pkey");
 
             entity.Property(e => e.Name).HasMaxLength(100);
@@ -54,7 +54,7 @@ public partial class PortfolioDbContext : DbContext
 
         modelBuilder.Entity<Client>(entity =>
         {
-            entity.ToTable("client");
+            entity.ToTable("Client");
             entity.HasKey(e => e.IdClient).HasName("clients_pkey");
 
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -66,7 +66,7 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdAddress).HasName("clientaddress_pkey");
 
-            entity.ToTable("clientaddress");
+            entity.ToTable("ClientAddress");
 
             entity.Property(e => e.City).HasMaxLength(75);
             entity.Property(e => e.LocationNumber).HasMaxLength(15);
@@ -84,7 +84,7 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdElement).HasName("element_pkey");
 
-            entity.ToTable("element");
+            entity.ToTable("Element");
 
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.Name).HasMaxLength(100);
@@ -99,7 +99,7 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdElementGroup).HasName("elementgroup_pkey");
 
-            entity.ToTable("elementgroup");
+            entity.ToTable("ElementGroup");
 
             entity.Property(e => e.Name).HasMaxLength(100);
 
@@ -113,7 +113,7 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdErrorLog).HasName("errorlog_pkey");
 
-            entity.ToTable("errorlog");
+            entity.ToTable("ErrorLog");
 
             entity.Property(e => e.Message).HasMaxLength(500);
             entity.Property(e => e.Name).HasMaxLength(255);
@@ -124,7 +124,7 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdEventJob).HasName("eventjob_pkey");
 
-            entity.ToTable("eventjob");
+            entity.ToTable("EventJob");
 
             entity.Property(e => e.EventDetails).HasMaxLength(255);
 
@@ -138,7 +138,7 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdEventJobLog).HasName("eventjoblog_pkey");
 
-            entity.ToTable("eventjoblog");
+            entity.ToTable("EventJobLog");
 
             entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.Timestamp).HasColumnType("timestamp without time zone");
@@ -152,6 +152,8 @@ public partial class PortfolioDbContext : DbContext
         modelBuilder.Entity<Job>(entity =>
         {
             entity.HasKey(e => e.IdJob).HasName("jobs_pkey");
+
+            entity.ToTable("Job");
 
             entity.Property(e => e.Date).HasColumnType("timestamp without time zone");
 
@@ -177,7 +179,7 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdStock).HasName("stock_pkey");
 
-            entity.ToTable("stock");
+            entity.ToTable("Stock");
 
             entity.Property(e => e.LastUpdated).HasColumnType("timestamp without time zone");
 
@@ -196,6 +198,9 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdTask).HasName("tasks_pkey");
 
+
+            entity.ToTable("TaskEntity");
+
             entity.Property(e => e.Description).HasMaxLength(255);
 
             entity.HasOne(d => d.Job).WithMany(p => p.Tasks)
@@ -208,7 +213,7 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdTransaction).HasName("transaction_pkey");
 
-            entity.ToTable("transaction");
+            entity.ToTable("Transaction");
 
             entity.Property(e => e.Date).HasColumnType("timestamp without time zone");
 
@@ -234,7 +239,7 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdTransactionLog).HasName("transactionlog_pkey");
 
-            entity.ToTable("transactionlog");
+            entity.ToTable("Transactionlog");
 
             entity.Property(e => e.Details).HasMaxLength(255);
             entity.Property(e => e.Timestamp).HasColumnType("timestamp without time zone");
@@ -248,7 +253,7 @@ public partial class PortfolioDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
 
-            entity.ToTable("user");
+            entity.ToTable("User");
             entity.HasKey(e => e.IdUser).HasName("users_pkey");
 
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -265,9 +270,71 @@ public partial class PortfolioDbContext : DbContext
         {
             entity.HasKey(e => e.IdWarehouse).HasName("warehouse_pkey");
 
-            entity.ToTable("warehouse");
+            entity.ToTable("Warehouse");
 
             entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Doc>(entity =>
+        {
+            entity.ToTable("Docs"); // Mapowanie na nazwę tabeli
+            entity.HasKey(e => e.IdDocs).HasName("pk_docs");
+
+            entity.Property(e => e.TotalNet).HasPrecision(12, 2).HasColumnName("TotalNet");
+            entity.Property(e => e.TotalVat).HasPrecision(12, 2).HasColumnName("TotalVat");
+            entity.Property(e => e.TotalGross).HasPrecision(12, 2).HasColumnName("TotalGross");
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.StatusDoc).HasColumnType("smallint"); // Odpowiednik TinyInt/SmallInt dla Enum
+        });
+
+        modelBuilder.Entity<DocElement>(entity =>
+        {
+            entity.ToTable("DocElements");
+            entity.HasKey(e => e.IdDocsElement).HasName("pk_docelements");
+
+            entity.Property(e => e.UnitPriceNet).HasPrecision(12, 2);
+            entity.Property(e => e.UnitPriceGross).HasPrecision(12, 2);
+            entity.Property(e => e.VatRate).HasPrecision(12, 2);
+
+            // Relacja skonfigurowana w Twoim stylu
+            entity.HasOne(d => d.Doc)
+                .WithMany(p => p.DocElements)
+                .HasForeignKey(d => d.IdDoc)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_docelements_doc");
+        });
+
+        modelBuilder.Entity<PurchaseLot>(entity =>
+        {
+            entity.ToTable("PurchaseLots");
+            entity.HasKey(e => e.IdPurchaseLot).HasName("pk_purchaselots");
+
+            entity.Property(e => e.UnitNetCost).HasPrecision(12, 2);
+            entity.Property(e => e.PurchasedAt).IsRequired();
+            entity.Property(e => e.QuantityRemaining).IsRequired();
+        });
+
+        // --- Konfiguracja TransactionLotAllocation ---
+        modelBuilder.Entity<TransactionLotAllocation>(entity =>
+        {
+            entity.ToTable("TransactionLotAllocations");
+            entity.HasKey(e => e.IdAllocation).HasName("pk_transactionlotallocations");
+
+            entity.Property(e => e.UnitNetCost).HasPrecision(12, 2);
+
+            // Relacja do PurchaseLot
+            entity.HasOne(d => d.PurchaseLot)
+                .WithMany(p => p.TransactionLotAllocations)
+                .HasForeignKey(d => d.PurchaseLotId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_allocation_purchaselot");
+
+            // Relacja do Transaction
+            entity.HasOne(d => d.Transaction)
+                .WithMany() // Jeśli Transaction nie ma kolekcji Allocations, zostawiamy puste
+                .HasForeignKey(d => d.TransactionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_allocation_transaction");
         });
 
         OnModelCreatingPartial(modelBuilder);

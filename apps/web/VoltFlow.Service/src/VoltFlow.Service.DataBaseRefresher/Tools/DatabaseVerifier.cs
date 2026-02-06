@@ -18,7 +18,7 @@ public class DatabaseVerifier
 
         // Note: Ensure these names match your C# entity names or [Table] attributes.
         // EF Core usually pluralizes names (e.g., "user" might be "Users" in the DB).
-        var tablesToVerify = new[] { "user", "Transaction", "Category" };
+        var tablesToVerify = new[] { "User", "Transaction", "Category" };
 
         var tablesOk = await VerifyTablesExistAsync(tablesToVerify);
         var keysOk = await VerifyForeignKeysAsync();
@@ -69,10 +69,10 @@ public class DatabaseVerifier
         {
             // We verify the "user" table count. 
             // Double quotes are used to handle potential case sensitivity in PostgreSQL.
-            var userCount = await ExecuteScalarAsync<long>("SELECT COUNT(*) FROM \"user\"");
+            var userCount = await ExecuteScalarAsync<long>("SELECT COUNT(*) FROM \"User\"");
 
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"[OK] Number of records in table 'user': {userCount}");
+            Console.WriteLine($"[OK] Number of records in table 'User': {userCount}");
             Console.ResetColor();
 
             return userCount >= 0; // 0 is technically valid if the seeder was empty

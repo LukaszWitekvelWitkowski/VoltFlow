@@ -11,14 +11,15 @@ namespace VoltFlow.Service.DataBaseRefresher.Tools
             _context = context;
         }
 
-        /// <summary>
-        /// Main method to clean the database in the correct order.
-        /// </summary>
         public void FullClean()
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("Starting deep cleanup of PostgreSQL database...");
             Console.ResetColor();
+
+            // PostgreSQL wymaga czasami zresetowania puli połączeń przy drastycznych zmianach schematu
+            var conn = _context.Database.GetDbConnection();
+            if (conn.State == System.Data.ConnectionState.Open) conn.Close();
 
             DropForeignKeys();
             DropIndices();
@@ -31,15 +32,17 @@ namespace VoltFlow.Service.DataBaseRefresher.Tools
 
         public void DropForeignKeys()
         {
+            // Dodajemy quote_ident wokół nazwy tabeli i schematu
             var sql = @"
             DO $$ DECLARE
                 r RECORD;
             BEGIN
-                FOR r IN (SELECT table_name, constraint_name
+                FOR r IN (SELECT table_name, constraint_name, table_schema
                           FROM information_schema.table_constraints
                           WHERE constraint_type = 'FOREIGN KEY' AND table_schema = 'public')
                 LOOP
-                    EXECUTE 'ALTER TABLE public.' || quote_ident(r.table_name) || ' DROP CONSTRAINT ' || quote_ident(r.constraint_name);
+                    EXECUTE 'ALTER TABLE ' || quote_ident(r.table_schema) || '.' || quote_ident(r.table_name) || 
+                            ' DROP CONSTRAINT ' || quote_ident(r.constraint_name);
                 END LOOP;
             END $$;";
 
@@ -52,23 +55,22 @@ namespace VoltFlow.Service.DataBaseRefresher.Tools
 
         public void DropIndices()
         {
-            // Note: We skip primary key indexes (usually ending in _pkey)
-            // and the __EFMigrationsHistory table indexes to avoid dependency errors.
             var sql = @"
-            DO $$ DECLARE
-                r RECORD;
-            BEGIN
-                FOR r IN (
-                    SELECT indexname 
-                    FROM pg_indexes 
-                    WHERE schemaname = 'public' 
-                    AND indexname NOT LIKE '%_pkey'
-                    AND tablename <> '__EFMigrationsHistory'
-                )
-                LOOP
-                    EXECUTE 'DROP INDEX IF EXISTS public.' || quote_ident(r.indexname);
-                END LOOP;
-            END $$;";
+                DO $$ DECLARE
+                    r RECORD;
+                BEGIN
+                    FOR r IN (
+                        SELECT indexname, schemaname
+                        FROM pg_indexes 
+                        WHERE schemaname = 'public' 
+                        AND indexname NOT ILIKE '%_pkey'
+                        AND indexname NOT ILIKE 'pk_%'
+                        AND tablename <> '__EFMigrationsHistory'
+                    )
+                    LOOP
+                        EXECUTE 'DROP INDEX IF EXISTS ' || quote_ident(r.schemaname) || '.' || quote_ident(r.indexname);
+                    END LOOP;
+                END $$;";
 
             _context.Database.ExecuteSqlRaw(sql);
 
@@ -76,22 +78,21 @@ namespace VoltFlow.Service.DataBaseRefresher.Tools
             Console.WriteLine("- Auxiliary indexes dropped.");
             Console.ResetColor();
         }
-
         public void DropAllTables()
         {
-            // Dropping tables here will automatically remove associated _pkey indexes.
+            // Kluczowe: PostgreSQL przy dużych literach musi mieć CASCADE i poprawne cytowanie
             var sql = @"
             DO $$ DECLARE
                 r RECORD;
             BEGIN
                 FOR r IN (
-                    SELECT tablename 
+                    SELECT tablename, schemaname
                     FROM pg_tables 
                     WHERE schemaname = 'public' 
                     AND tablename <> '__EFMigrationsHistory'
                 )
                 LOOP
-                    EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
+                    EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.schemaname) || '.' || quote_ident(r.tablename) || ' CASCADE';
                 END LOOP;
             END $$;";
 
