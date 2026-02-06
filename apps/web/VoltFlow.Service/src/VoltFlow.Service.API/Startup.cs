@@ -1,6 +1,12 @@
-﻿using Microsoft.OpenApi;
-using System.Data;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using VoltFlow.Service.Application.Queries.Category;
+using VoltFlow.Service.Core.Abstractions.Repositories;
+using VoltFlow.Service.Infrastructure.Data;
+using VoltFlow.Service.Infrastructure.Handlers.Category;
+using VoltFlow.Service.Infrastructure.Repositories;
 
 
 namespace VoltFlow.Service.API
@@ -18,28 +24,57 @@ namespace VoltFlow.Service.API
         {
             services.AddControllers();
 
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
+            typeof(GetCategoriesQuery).Assembly,   // Automatycznie rejestruje wszystko z warstwy Application
+            typeof(GetCategoriesHandlers).Assembly // Automatycznie rejestruje wszystko z warstwy Infrastructure
+        ));
 
-            services.AddScoped<IDbConnection>(sp => new SqlConnection(Configuration.GetSection("ConnectionStrings:DataBase").Value!));
-
-
-
+            // Upewnij się, że nazwa w appsettings to "DefaultConnection" czy "DataBase"
+            services.AddDbContext<VoltFlowDbContext>(options =>
+                     options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddCors(c =>
             {
                 c.AddPolicy("AllowAngularApp", options =>
-                                                         options.AllowAnyOrigin()
-                                                                .AllowAnyHeader()
-                                                                .AllowAnyMethod()
-                 );
+                    options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             });
 
             services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
 
-            services.AddSwaggerGen(c =>
+            // Konfiguracja JWT
+            var secretKey = Configuration["Jwt:Key"];
+            if (string.IsNullOrEmpty(secretKey))
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+                throw new InvalidOperationException("Jwt:Key is missing in appsettings.json");
+            }
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration["Jwt:Issuer"] ?? "your-app",
+                    ValidAudience = Configuration["Jwt:Audience"] ?? "your-app",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+                };
             });
+
+            services.AddAuthorization();
+
+            // Rejestracja repozytoriów
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IElementRepository, ElementRepository>();
+
         }
+
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -70,7 +105,7 @@ namespace VoltFlow.Service.API
                 await next();
             });
 
-            app.UseAuthentication(); 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseSwagger();
@@ -85,5 +120,6 @@ namespace VoltFlow.Service.API
             });
 
         }
+
     }
 }
