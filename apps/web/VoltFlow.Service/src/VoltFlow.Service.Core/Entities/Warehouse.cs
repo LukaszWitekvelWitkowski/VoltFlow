@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using VoltFlow.Service.Core.Enums;
+﻿using VoltFlow.Service.Core.Enums;
 
 namespace VoltFlow.Service.Core.Entities
 {
@@ -20,6 +17,7 @@ namespace VoltFlow.Service.Core.Entities
 
         public ICollection<Stock> Stocks { get; set; } = new List<Stock>();
 
-        public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+        public virtual ICollection<Transaction> OutgoingTransactions { get; set; } = new List<Transaction>();
+        public virtual ICollection<Transaction> IncomingTransactions { get; set; } = new List<Transaction>();
     }
 }
