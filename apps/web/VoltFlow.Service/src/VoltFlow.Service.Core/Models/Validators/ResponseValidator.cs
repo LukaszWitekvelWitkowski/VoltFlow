@@ -1,6 +1,7 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using VoltFlow.Service.Core.Models.Common;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace VoltFlow.Service.Core.Models
+namespace VoltFlow.Service.Core.Models.Validators
 {
     public static class ResponseValidator
     {

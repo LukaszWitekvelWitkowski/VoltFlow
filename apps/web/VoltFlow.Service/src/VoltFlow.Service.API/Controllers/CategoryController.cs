@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using VoltFlow.Service.API.Base;
 using VoltFlow.Service.Application.Queries.Category;
+using VoltFlow.Service.Application.Queries.Element;
 using VoltFlow.Service.Core.Models.Category;
+using VoltFlow.Service.Core.Models.Requests;
 
 namespace VoltFlow.Service.API.Controllers
 {
@@ -21,8 +23,8 @@ namespace VoltFlow.Service.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryByIdAsync(int id) => await HandlerAsync(new GetCategoryByIdQuery(id));
 
-        [HttpGet("search/{Name}")]
-        public async Task<IActionResult> GetCategoryByNameAsync(string name) => await HandlerAsync(new GetCategoryByNameQuery(name));
+        [HttpGet("search")]
+        public async Task<IActionResult> GetCategoryByNameAsync([FromQuery] SearchRequest request) => await HandlerAsync(new GetCategoryByNameQuery(request.Name, request.Number, request.Size));
 
 
         #endregion

@@ -1,4 +1,4 @@
-﻿namespace VoltFlow.Service.Core.Models.Category
+﻿namespace VoltFlow.Service.Core.Models.Category.DTOs
 {
     public class CategoryDTO
     {

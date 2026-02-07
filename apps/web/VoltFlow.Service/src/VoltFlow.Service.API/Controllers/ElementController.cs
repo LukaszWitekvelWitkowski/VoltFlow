@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VoltFlow.Service.API.Base;
 using VoltFlow.Service.Application.Queries.Element;
+using VoltFlow.Service.Core.Models.Requests;
 
 namespace VoltFlow.Service.API.Controllers
 {
@@ -19,10 +20,10 @@ namespace VoltFlow.Service.API.Controllers
         public async Task<IActionResult> GetElementsAsync() => await HandlerAsync(new GetElementsQuery());
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetElementByIdAsync(int id) => await HandlerAsync(new GetElementByIdQuery(id));
+        public async Task<IActionResult> GetElementByIdAsync([FromRoute] int id) => await HandlerAsync(new GetElementByIdQuery(id));
 
-        [HttpGet("search/{Name}")]
-        public async Task<IActionResult> GetElementByNameAsync(string name) => await HandlerAsync(new GetElementByNameQuery(name));
+        [HttpGet("search")]
+        public async Task<IActionResult> GetElementsPagedByNameAsync([FromQuery] SearchRequest request) => await HandlerAsync(new GetElementByNameQuery(request.Name, request.Number, request.Size));
 
         #endregion
         #region POST

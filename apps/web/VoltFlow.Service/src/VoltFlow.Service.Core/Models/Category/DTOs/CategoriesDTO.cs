@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace VoltFlow.Service.Core.Models.Category
+namespace VoltFlow.Service.Core.Models.Category.DTOs
 {
     public class CategoriesDTO
     {

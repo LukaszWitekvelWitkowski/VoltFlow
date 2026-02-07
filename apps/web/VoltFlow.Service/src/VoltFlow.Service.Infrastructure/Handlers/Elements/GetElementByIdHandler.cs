@@ -1,8 +1,9 @@
 ﻿using MediatR;
 using VoltFlow.Service.Application.Queries.Element;
 using VoltFlow.Service.Core.Abstractions.Repositories;
-using VoltFlow.Service.Core.Models;
-using VoltFlow.Service.Core.Models.Element;
+using VoltFlow.Service.Core.Models.Common;
+using VoltFlow.Service.Core.Models.Element.DTOs;
+using VoltFlow.Service.Core.Models.Validators;
 
 namespace VoltFlow.Service.Infrastructure.Handlers.Elements
 {

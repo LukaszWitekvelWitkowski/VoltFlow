@@ -1,5 +1,5 @@
-﻿using VoltFlow.Service.Core.Models;
-using VoltFlow.Service.Core.Models.Element;
+﻿using VoltFlow.Service.Core.Models.Common;
+using VoltFlow.Service.Core.Models.Element.DTOs;
 
 namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
@@ -7,7 +7,7 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
     {
         Task<ServiceResponse<ElementsDTO>> GetElementsQuery();
         Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id);
-        Task<ServiceResponse<ElementDTO>> GetElementByNameQuery(string name);
+        Task<ServiceResponse<PagedResultDTO<ElementDTO>>> GetElementsPagedByNameQuery(string? name, int page, int size);
 
     }
 }

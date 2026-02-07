@@ -1,4 +1,4 @@
-﻿namespace VoltFlow.Service.Core.Models
+﻿namespace VoltFlow.Service.Core.Models.Common
 {
     public class ServiceResponse<T>
     {

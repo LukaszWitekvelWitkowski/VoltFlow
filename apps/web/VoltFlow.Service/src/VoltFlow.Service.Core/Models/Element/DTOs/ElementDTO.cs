@@ -1,4 +1,4 @@
-﻿namespace VoltFlow.Service.Core.Models.Element
+﻿namespace VoltFlow.Service.Core.Models.Element.DTOs
 {
     public class ElementDTO
     {

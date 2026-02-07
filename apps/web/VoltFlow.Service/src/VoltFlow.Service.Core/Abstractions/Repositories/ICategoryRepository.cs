@@ -1,5 +1,5 @@
-﻿using VoltFlow.Service.Core.Models;
-using VoltFlow.Service.Core.Models.Category;
+﻿using VoltFlow.Service.Core.Models.Category.DTOs;
+using VoltFlow.Service.Core.Models.Common;
 
 namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
@@ -7,6 +7,6 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
     {
         Task<ServiceResponse<CategoriesDTO>> GetCategoriesQuery();
         Task<ServiceResponse<CategoryDTO>> GetCategoryByIdQuery(int id);
-        Task<ServiceResponse<CategoryDTO>> GetCategoryByNameQuery(string name);
+        Task<ServiceResponse<PagedResultDTO<CategoryDTO>>> GetCategoriesPagedByNameQuery(string? name, int page, int size);
     }
 }

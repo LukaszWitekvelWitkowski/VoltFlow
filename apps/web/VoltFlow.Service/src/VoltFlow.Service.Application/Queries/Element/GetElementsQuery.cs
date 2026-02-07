@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using VoltFlow.Service.Core.Models;
-using VoltFlow.Service.Core.Models.Element;
+using VoltFlow.Service.Core.Models.Common;
+using VoltFlow.Service.Core.Models.Element.DTOs;
 
 namespace VoltFlow.Service.Application.Queries.Element
 {
