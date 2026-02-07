@@ -1,4 +1,4 @@
 INSERT INTO "Category" ("IdCategory", "Name", "IsObsolete") VALUES
 (1, 'Elektronika', false),
-(2, 'Podzespo≥y Mechaniczne', false),
-(3, 'Materia≥y Eksploatacyjne', true);
+(2, 'Podzespo≈Çy Mechaniczne', false),
+(3, 'Materia≈Çy Eksploatacyjne', true);
