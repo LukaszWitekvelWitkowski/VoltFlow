@@ -7,10 +7,10 @@ using VoltFlow.Service.Core.Models.Validators;
 
 namespace VoltFlow.Service.Infrastructure.Handlers.Nowy_folder
 {
-    public class GetElementsHandlers : IRequestHandler<GetElementsQuery, ServiceResponse<ElementsDTO>>
+    public class GetElementsHandler : IRequestHandler<GetElementsQuery, ServiceResponse<ElementsDTO>>
     {
         private readonly IElementRepository _elementRepository;
-        public GetElementsHandlers(IElementRepository elementRepository)
+        public GetElementsHandler(IElementRepository elementRepository)
         {
             _elementRepository = elementRepository;
         }

@@ -6,7 +6,7 @@ namespace VoltFlow.Service.Core.Models.Category
 {
     public class GetCategorySearchQuery : PaginationParams, IRequest<ServiceResponse<PagedResultDTO<CategoryDTO>>>
     {
-        public string Name { get; }
+        public string? Name { get; }
         public GetCategorySearchQuery(string? name, int number, int size)
         {
             Name = name;

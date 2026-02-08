@@ -2,6 +2,6 @@
 {
     public class ElementsDTO
     {
-        public required IEnumerable<ElemntGroupDTO> Elements { get; set; }
+        public required IEnumerable<ElementDTO> Elements { get; set; }
     }
 }

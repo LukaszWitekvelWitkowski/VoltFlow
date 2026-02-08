@@ -79,7 +79,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                     })
                     .ToListAsync();
 
-                return ServiceResponse<ElementGroupsDTO>.Result(new ElementGroupsDTO { ElementGroups = groupsList });
+                return ServiceResponse<ElementGroupsDTO>.Result(new ElementGroupsDTO(groupsList));
             }
             catch (Exception ex)
             {

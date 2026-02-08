@@ -7,7 +7,7 @@ using VoltFlow.Service.Core.Models.Validators;
 
 namespace VoltFlow.Service.Infrastructure.Handlers.Elements
 {
-    public class GetElementSearchHandler : IRequestHandler<GetElementSearchQuery, ServiceResponse<PagedResultDTO<ElemntGroupDTO>>>
+    public class GetElementSearchHandler : IRequestHandler<GetElementSearchQuery, ServiceResponse<PagedResultDTO<ElementDTO>>>
     {
         private readonly IElementRepository _elementRepository;
 
@@ -15,7 +15,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Elements
         {
             _elementRepository = elementRepository;
         }
-        public async Task<ServiceResponse<PagedResultDTO<ElemntGroupDTO>>> Handle(GetElementSearchQuery request, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<PagedResultDTO<ElementDTO>>> Handle(GetElementSearchQuery request, CancellationToken cancellationToken)
         {
             return ResponseValidator.EnsureSuccessAndData(await _elementRepository.GetElementsPagedByNameQuery(request.Name, request.PageNumber, request.PageSize), "Element");
         }

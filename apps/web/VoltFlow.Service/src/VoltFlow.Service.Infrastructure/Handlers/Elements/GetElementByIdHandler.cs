@@ -7,7 +7,7 @@ using VoltFlow.Service.Core.Models.Validators;
 
 namespace VoltFlow.Service.Infrastructure.Handlers.Elements
 {
-    public class GetElementByIdHandler : IRequestHandler<GetElementByIdQuery, ServiceResponse<ElemntGroupDTO>>
+    public class GetElementByIdHandler : IRequestHandler<GetElementByIdQuery, ServiceResponse<ElementDTO>>
     {
         private readonly IElementRepository _elementRepository;
 
@@ -16,7 +16,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Elements
             _elementRepository = elementRepository;
         }
 
-        public async Task<ServiceResponse<ElemntGroupDTO>> Handle(GetElementByIdQuery request, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<ElementDTO>> Handle(GetElementByIdQuery request, CancellationToken cancellationToken)
         {
             return ResponseValidator.EnsureSuccessAndData(await _elementRepository.GetElementByIdQuery(request.Id), "Element");
         }

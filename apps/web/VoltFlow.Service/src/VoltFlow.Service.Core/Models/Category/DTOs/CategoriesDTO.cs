@@ -2,6 +2,16 @@
 {
     public class CategoriesDTO
     {
-        public required IEnumerable<CategoryDTO> Categories { get; set; }
+        public IEnumerable<CategoryDTO> Categories { get; set; }
+
+        public CategoriesDTO(IEnumerable<CategoryDTO>? categories)
+        {
+            if (categories == null)
+            {
+                Categories = new List<CategoryDTO>();
+                return;
+            }
+            Categories = categories;
+        }
     }
 }

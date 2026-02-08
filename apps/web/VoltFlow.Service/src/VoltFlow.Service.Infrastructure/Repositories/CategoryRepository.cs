@@ -92,7 +92,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                         IsObsolete = c.IsObsolete
                     }).ToListAsync();
 
-                return ServiceResponse<CategoriesDTO>.Result(new CategoriesDTO { Categories = categoriesList });
+                return ServiceResponse<CategoriesDTO>.Result(new CategoriesDTO(categoriesList));
             }
             catch (Exception)
             {

@@ -1,6 +1,6 @@
 ﻿namespace VoltFlow.Service.Core.Models.Element.DTOs
 {
-    public class ElemntGroupDTO
+    public class ElementDTO
     {
         public int IdElement { get; set; }
         public string Name { get; set; } = string.Empty;
