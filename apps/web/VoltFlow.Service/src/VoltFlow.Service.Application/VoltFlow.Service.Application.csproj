@@ -11,11 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Commands\Category\" />
     <Folder Include="Commands\Element\" />
     <Folder Include="Commands\ElementGroup\" />
     <Folder Include="Commands\TaskEntity\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
   <ItemGroup>

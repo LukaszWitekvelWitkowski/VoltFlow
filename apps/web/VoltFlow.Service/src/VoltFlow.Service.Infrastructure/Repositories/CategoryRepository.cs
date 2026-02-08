@@ -12,7 +12,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
     public class CategoryRepository : ICategoryRepository
     {
         private readonly VoltFlowDbContext _context;
-        private readonly LazyValue<ServiceResponse<CategoriesDTO>> _allCategoryLazy;
+        private LazyValue<ServiceResponse<CategoriesDTO>> _allCategoryLazy;
 
         public CategoryRepository(VoltFlowDbContext context)
         {
@@ -77,6 +77,45 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 .FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
             return ServiceResponse<CategoryDTO>.Result(category);
+        }
+
+
+        public async Task<ServiceResponse<CategoryDTO>> AddCategoryCommand(string name)
+        {
+            try
+            {
+         
+                var newCategory = new Category
+                {
+                    Name = name,
+                    IsObsolete = false
+
+                };
+
+                _context.Set<Category>().Add(newCategory);
+                await _context.SaveChangesAsync();
+
+                _allCategoryLazy = new LazyValue<ServiceResponse<CategoriesDTO>>(FetchCategoriesFromDb);
+
+                var categoryDTO = _allCategoryLazy.GetValueAsync().Result._Data?.Categories.FirstOrDefault(c => c.Id == newCategory.IdCategory);
+
+
+                return ServiceResponse<CategoryDTO>.Result(categoryDTO);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse<CategoryDTO>.Failure("Nie udało się zapisać kategorii.", 500);
+            }
+        }
+
+        public async Task<bool> CategoryExistsByName(string name)
+        {
+            var response = await _allCategoryLazy.GetValueAsync();
+
+            if (response._Data == null) return false;
+
+            return response._Data.Categories
+                .Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
         private async Task<ServiceResponse<CategoriesDTO>> FetchCategoriesFromDb()

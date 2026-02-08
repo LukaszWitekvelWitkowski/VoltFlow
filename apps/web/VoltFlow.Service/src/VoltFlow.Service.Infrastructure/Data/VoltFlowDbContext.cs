@@ -49,6 +49,8 @@ public partial class VoltFlowDbContext : DbContext
             entity.ToTable("Category");
             entity.HasKey(e => e.IdCategory).HasName("categories_pkey");
 
+            entity.Property(e => e.IdCategory).ValueGeneratedOnAdd();
+
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
@@ -86,6 +88,8 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.ToTable("Element");
 
+            entity.Property(e => e.IdElement).ValueGeneratedOnAdd();
+
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.Name).HasMaxLength(100);
 
@@ -101,6 +105,8 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.ToTable("ElementGroup");
 
+            entity.Property(e => e.IdElementGroup).ValueGeneratedOnAdd();
+
             entity.Property(e => e.Name).HasMaxLength(100);
 
             entity.HasOne(d => d.Category).WithMany(p => p.ElementsGroups)
@@ -115,6 +121,8 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.ToTable("ErrorLog");
 
+            entity.Property(e => e.IdErrorLog).ValueGeneratedOnAdd();
+
             entity.Property(e => e.Message).HasMaxLength(500);
             entity.Property(e => e.Name).HasMaxLength(255);
             entity.Property(e => e.Timestamp).HasColumnType("timestamp without time zone");
@@ -125,6 +133,8 @@ public partial class VoltFlowDbContext : DbContext
             entity.HasKey(e => e.IdEventJob).HasName("eventjob_pkey");
 
             entity.ToTable("EventJob");
+
+            entity.Property(e => e.IdEventJob).ValueGeneratedOnAdd();
 
             entity.Property(e => e.EventDetails).HasMaxLength(255);
 
@@ -140,6 +150,8 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.ToTable("EventJobLog");
 
+            entity.Property(e => e.IdEventJobLog).ValueGeneratedOnAdd();
+
             entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.Timestamp).HasColumnType("timestamp without time zone");
 
@@ -154,6 +166,8 @@ public partial class VoltFlowDbContext : DbContext
             entity.HasKey(e => e.IdJob).HasName("jobs_pkey");
 
             entity.ToTable("Job");
+
+            entity.Property(e => e.IdJob).ValueGeneratedOnAdd();
 
             entity.Property(e => e.Date).HasColumnType("timestamp without time zone");
 
@@ -181,6 +195,8 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.ToTable("Stock");
 
+            entity.Property(e => e.IdStock).ValueGeneratedOnAdd();
+
             entity.Property(e => e.LastUpdated).HasColumnType("timestamp without time zone");
 
             entity.HasOne(d => d.Element).WithMany(p => p.Stocks)
@@ -200,6 +216,8 @@ public partial class VoltFlowDbContext : DbContext
 
 
             entity.ToTable("TaskEntity");
+
+            entity.Property(e => e.IdTask).ValueGeneratedOnAdd();
 
             entity.Property(e => e.Description).HasMaxLength(255);
 

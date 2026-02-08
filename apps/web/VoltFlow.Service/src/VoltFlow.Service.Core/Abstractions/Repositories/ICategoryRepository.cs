@@ -8,5 +8,7 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
         Task<ServiceResponse<CategoriesDTO>> GetCategoriesQuery();
         Task<ServiceResponse<CategoryDTO>> GetCategoryByIdQuery(int id);
         Task<ServiceResponse<PagedResultDTO<CategoryDTO>>> GetCategoriesPagedByNameQuery(string? name, int page, int size);
+        Task<bool> CategoryExistsByName(string name);
+        Task<ServiceResponse<CategoryDTO>> AddCategoryCommand(string categoryDto);
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using VoltFlow.Service.Application.Queries.Category;
+using VoltFlow.Service.Application.Services;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Infrastructure.Data;
 using VoltFlow.Service.Infrastructure.Handlers.Category;
@@ -75,6 +76,8 @@ namespace VoltFlow.Service.API
             services.AddScoped<IElementGroupRepository, ElementGroupRepository>();
             services.AddScoped<ITaskEntityRepository, TaskEntityRepository>();
             services.AddScoped<ICatalogRepository, CatalogRepository>();
+
+            services.AddScoped<ICategoryService, CategoryService>();
 
         }
 

@@ -1,8 +1,10 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VoltFlow.Service.API.Base;
+using VoltFlow.Service.Application.Commands.Category;
 using VoltFlow.Service.Application.Queries.Category;
 using VoltFlow.Service.Core.Models.Category;
+using VoltFlow.Service.Core.Models.Category.Request;
 using VoltFlow.Service.Core.Models.Requests;
 
 namespace VoltFlow.Service.API.Controllers
@@ -30,6 +32,10 @@ namespace VoltFlow.Service.API.Controllers
         #region POST
 
         #endregion
+
+        [HttpPost("")]
+        public async Task<IActionResult> CreateCategoryAsync([FromBody] CreateCategoryRequest request) => await HandlerAsync(new CreateCategoryCommand(request.Name));
+
         #region PUT
 
         #endregion
