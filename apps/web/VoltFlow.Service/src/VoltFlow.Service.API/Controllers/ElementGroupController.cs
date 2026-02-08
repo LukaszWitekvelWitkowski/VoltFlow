@@ -16,13 +16,13 @@ namespace VoltFlow.Service.API.Controllers
         #region GET
 
         [HttpGet("")]
-        public async Task<IActionResult> GetElementsAsync() => await HandlerAsync(new GetElementGroupsQuery());
+        public async Task<IActionResult> GetElementGroupsAsync() => await HandlerAsync(new GetElementGroupsQuery());
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetElementByIdAsync([FromRoute] int id) => await HandlerAsync(new GetElementGroupByIdQuery(id));
+        public async Task<IActionResult> GetElementGroupByIdAsync([FromRoute] int id) => await HandlerAsync(new GetElementGroupByIdQuery(id));
 
         [HttpGet("search")]
-        public async Task<IActionResult> GetElementsPagedByNameAsync([FromQuery] SearchRequest request) => await HandlerAsync(new GetElementGroupSearchQuery(request.Name, request.Number, request.Size));
+        public async Task<IActionResult> GetElementGroupSearchAsync([FromQuery] SearchRequest request) => await HandlerAsync(new GetElementGroupSearchQuery(request.Name, request.Number, request.Size));
 
         #endregion
         #region POST

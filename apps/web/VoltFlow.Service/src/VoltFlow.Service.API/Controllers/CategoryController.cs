@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VoltFlow.Service.API.Base;
 using VoltFlow.Service.Application.Queries.Category;
-using VoltFlow.Service.Application.Queries.Element;
 using VoltFlow.Service.Core.Models.Category;
 using VoltFlow.Service.Core.Models.Requests;
 

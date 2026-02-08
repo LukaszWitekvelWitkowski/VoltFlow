@@ -74,6 +74,7 @@ namespace VoltFlow.Service.API
             services.AddScoped<IElementRepository, ElementRepository>();
             services.AddScoped<IElementGroupRepository, ElementGroupRepository>();
             services.AddScoped<ITaskEntityRepository, TaskEntityRepository>();
+            services.AddScoped<ICatalogRepository, CatalogRepository>();
 
         }
 
