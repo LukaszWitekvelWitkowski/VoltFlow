@@ -24,7 +24,7 @@ namespace VoltFlow.Service.API.Controllers
         public async Task<IActionResult> GetCategoryByIdAsync(int id) => await HandlerAsync(new GetCategoryByIdQuery(id));
 
         [HttpGet("search")]
-        public async Task<IActionResult> GetCategoryByNameAsync([FromQuery] SearchRequest request) => await HandlerAsync(new GetCategoryByNameQuery(request.Name, request.Number, request.Size));
+        public async Task<IActionResult> GetCategoryByNameAsync([FromQuery] SearchRequest request) => await HandlerAsync(new GetCategorySearchQuery(request.Name, request.Number, request.Size));
 
 
         #endregion

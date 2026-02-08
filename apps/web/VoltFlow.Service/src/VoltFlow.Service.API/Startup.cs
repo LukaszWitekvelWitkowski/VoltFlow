@@ -72,6 +72,7 @@ namespace VoltFlow.Service.API
             // Rejestracja repozytoriów
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IElementRepository, ElementRepository>();
+            services.AddScoped<IElementGroupRepository, ElementGroupRepository>();
 
         }
 

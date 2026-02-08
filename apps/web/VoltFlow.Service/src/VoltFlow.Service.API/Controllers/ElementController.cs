@@ -23,7 +23,7 @@ namespace VoltFlow.Service.API.Controllers
         public async Task<IActionResult> GetElementByIdAsync([FromRoute] int id) => await HandlerAsync(new GetElementByIdQuery(id));
 
         [HttpGet("search")]
-        public async Task<IActionResult> GetElementsPagedByNameAsync([FromQuery] SearchRequest request) => await HandlerAsync(new GetElementByNameQuery(request.Name, request.Number, request.Size));
+        public async Task<IActionResult> GetElementsPagedByNameAsync([FromQuery] SearchRequest request) => await HandlerAsync(new GetElementSearchQuery(request.Name, request.Number, request.Size));
 
         #endregion
         #region POST

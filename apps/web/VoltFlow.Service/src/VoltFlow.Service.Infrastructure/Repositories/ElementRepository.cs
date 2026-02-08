@@ -18,30 +18,30 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             _context = context;
             _allElementsLazy = new LazyValue<ServiceResponse<ElementsDTO>>(FetchElementsFromDb);
         }
-        public async Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id)
+        public async Task<ServiceResponse<ElemntGroupDTO>> GetElementByIdQuery(int id)
         {
             var response = await _allElementsLazy.GetValueAsync();
 
             if (!response._IsSuccess)
             {
-                return ServiceResponse<ElementDTO>.Failure(response._Message, response._StatusCode);
+                return ServiceResponse<ElemntGroupDTO>.Failure(response._Message, response._StatusCode);
             }
 
             var element = response._Data?.Elements.FirstOrDefault(e => e.IdElement == id);
 
-            return ServiceResponse<ElementDTO>.Result(element);
+            return ServiceResponse<ElemntGroupDTO>.Result(element);
         }
 
-        public async Task<ServiceResponse<PagedResultDTO<ElementDTO>>> GetElementsPagedByNameQuery(string? name, int page, int size)
+        public async Task<ServiceResponse<PagedResultDTO<ElemntGroupDTO>>> GetElementsPagedByNameQuery(string? name, int page, int size)
         {
             var response = await _allElementsLazy.GetValueAsync();
 
             if (!response._IsSuccess)
             {
-                return ServiceResponse<PagedResultDTO<ElementDTO>>.Failure(response._Message, response._StatusCode);
+                return ServiceResponse<PagedResultDTO<ElemntGroupDTO>>.Failure(response._Message, response._StatusCode);
             }
 
-            var listResponse = ServiceResponse<List<ElementDTO>>.Result(response._Data?.Elements ?? new List<ElementDTO>());
+            var listResponse = ServiceResponse<List<ElemntGroupDTO>>.Result((List<ElemntGroupDTO>?)(response._Data?.Elements ?? new List<ElemntGroupDTO>()));
 
             return PagedHelper.ToPagedResponse(
                 listResponse,
@@ -65,7 +65,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             {
                 var elementList = await _context.Set<Element>()
                     .AsNoTracking() // Złota zasada Seniora: Odczyt do DTO = AsNoTracking (wydajność!)
-                    .Select(e => new ElementDTO
+                    .Select(e => new ElemntGroupDTO
                     {
                         IdElement = e.IdElement,
                         Name = e.Name,

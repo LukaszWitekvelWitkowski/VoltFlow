@@ -4,10 +4,10 @@ using VoltFlow.Service.Core.Models.Element.DTOs;
 
 namespace VoltFlow.Service.Application.Queries.Element
 {
-    public class GetElementByNameQuery : PaginationParams, IRequest<ServiceResponse<PagedResultDTO<ElementDTO>>> 
+    public class GetElementSearchQuery : PaginationParams, IRequest<ServiceResponse<PagedResultDTO<ElemntGroupDTO>>> 
     {
         public string? Name { get; }
-        public GetElementByNameQuery(string? name, int number, int size)
+        public GetElementSearchQuery(string? name, int number, int size)
         {
             Name = name;
             PageNumber = number;

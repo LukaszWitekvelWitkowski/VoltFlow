@@ -4,7 +4,7 @@ using VoltFlow.Service.Core.Models.Element.DTOs;
 
 namespace VoltFlow.Service.Application.Queries.Element
 {
-    public class GetElementByIdQuery : IRequest<ServiceResponse<ElementDTO>>
+    public class GetElementByIdQuery : IRequest<ServiceResponse<ElemntGroupDTO>>
     {
         public int Id { get; }
         public GetElementByIdQuery(int id)

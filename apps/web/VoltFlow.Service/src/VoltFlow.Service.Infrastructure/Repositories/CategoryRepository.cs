@@ -53,7 +53,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             }
 
             // Przygotowanie listy pod generycznego Helpera
-            var listResponse = ServiceResponse<List<CategoryDTO>>.Result(response._Data?.Categories ?? new List<CategoryDTO>());
+            var listResponse = ServiceResponse<List<CategoryDTO>>.Result((List<CategoryDTO>?)(response._Data?.Categories ?? new List<CategoryDTO>()));
 
             return PagedHelper.ToPagedResponse(
                 listResponse,

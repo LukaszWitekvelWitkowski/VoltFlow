@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VoltFlow.Service.Core.Models.Category.DTOs
+﻿namespace VoltFlow.Service.Core.Models.Category.DTOs
 {
     public class CategoriesDTO
     {
-        public required List<CategoryDTO> Categories { get; set; }
+        public required IEnumerable<CategoryDTO> Categories { get; set; }
     }
 }
