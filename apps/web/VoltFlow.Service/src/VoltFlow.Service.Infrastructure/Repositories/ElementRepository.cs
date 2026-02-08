@@ -3,6 +3,7 @@ using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.Element.DTOs;
+using VoltFlow.Service.Core.Models.Element.Request;
 using VoltFlow.Service.Core.Pagination;
 using VoltFlow.Service.Core.Tools;
 using VoltFlow.Service.Infrastructure.Data;
@@ -12,12 +13,43 @@ namespace VoltFlow.Service.Infrastructure.Repositories
     public class ElementRepository : IElementRepository
     {
         private readonly VoltFlowDbContext _context;
-        private readonly LazyValue<ServiceResponse<ElementsDTO>> _allElementsLazy;
+        private  LazyValue<ServiceResponse<ElementsDTO>> _allElementsLazy;
         public ElementRepository(VoltFlowDbContext context)
         {
             _context = context;
             _allElementsLazy = new LazyValue<ServiceResponse<ElementsDTO>>(FetchElementsFromDb);
         }
+
+        public async Task<ServiceResponse<ElementDTO>> AddElement(string name)
+        {
+            try
+            {
+  
+                var newElement = new Element
+                {
+                    Name = name,
+                    IsObsolete = false,
+                };
+
+                _context.Set<Element>().Add(newElement);
+                await _context.SaveChangesAsync();
+
+
+                _allElementsLazy = new LazyValue<ServiceResponse<ElementsDTO>>(FetchElementsFromDb);
+
+
+                var allElementsResponse = await _allElementsLazy.GetValueAsync();
+                var elementDTO = allElementsResponse._Data?.Elements
+                    .FirstOrDefault(e => e.IdElement == newElement.IdElement);
+
+                return ServiceResponse<ElementDTO>.Result(elementDTO!);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse<ElementDTO>.Failure("Nie udało się zapisać elementu w bazie danych.", 500);
+            }
+        }
+
         public async Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id)
         {
             var response = await _allElementsLazy.GetValueAsync();
@@ -57,6 +89,41 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             var fullResponse = await _allElementsLazy.GetValueAsync();
 
             return ServiceResponse<ElementsDTO>.Result(fullResponse._Data);
+        }
+
+        public async Task<ServiceResponse<ElementDTO>> UpdateElement(UpdateElementRequest request)
+        {
+            try
+            {
+                var element = await _context.Set<Element>()
+                    .FirstOrDefaultAsync(e => e.IdElement == request.Id);
+
+                if (element == null)
+                {
+                    return ServiceResponse<ElementDTO>.Failure("Nie znaleziono elementu o podanym ID.", 404);
+                }
+
+                element.Name = request.Name.Trim();
+                element.IsObsolete = request.IsObsolete;
+
+                await _context.SaveChangesAsync();
+
+                _allElementsLazy = new LazyValue<ServiceResponse<ElementsDTO>>(FetchElementsFromDb);
+
+
+                return ServiceResponse<ElementDTO>.Result(new ElementDTO
+                {
+                    IdElement = element.IdElement,
+                    Name = element.Name,
+                    IsObsolete = element.IsObsolete,
+                    Description = element.Description, // Przekazujemy istniejące dane
+                    ElementGroupId = element.ElementGroupId
+                });
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse<ElementDTO>.Failure("Wystąpił błąd bazy danych podczas aktualizacji elementu.", 500);
+            }
         }
 
         private async Task<ServiceResponse<ElementsDTO>> FetchElementsFromDb()
