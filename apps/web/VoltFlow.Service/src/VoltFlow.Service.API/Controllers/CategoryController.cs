@@ -30,17 +30,16 @@ namespace VoltFlow.Service.API.Controllers
 
         #endregion
         #region POST
-
-        #endregion
-
         [HttpPost("")]
         public async Task<IActionResult> CreateCategoryAsync([FromBody] CreateCategoryRequest request) => await HandlerAsync(new CreateCategoryCommand(request.Name));
 
+        #endregion
+
+
         #region PUT
-
+        [HttpPut("")]
+        public async Task<IActionResult> UpdateCategoryAsync([FromBody] UpdateCategoryRequest request) => await HandlerAsync(new UpdateCategoryCommand(request));
         #endregion
-        #region DELETE
 
-        #endregion
     }
 }

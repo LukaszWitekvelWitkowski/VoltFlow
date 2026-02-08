@@ -6,18 +6,18 @@ using VoltFlow.Service.Core.Models.Common;
 
 namespace VoltFlow.Service.Infrastructure.Handlers.Category
 {
-    public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, ServiceResponse<CategoryDTO>>
+    public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, ServiceResponse<CategoryDTO>>
     {
         private readonly ICategoryService _categoryService;
 
-        public CreateCategoryHandler(ICategoryService categoryService)
+        public UpdateCategoryHandler(ICategoryService categoryService)
         {
             _categoryService = categoryService;
         }
 
-        public async Task<ServiceResponse<CategoryDTO>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<CategoryDTO>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
         {
-            return await _categoryService.CreateCategory(request.Name);
+            return await _categoryService.UpdateCategory(request._request);
         }
     }
 }

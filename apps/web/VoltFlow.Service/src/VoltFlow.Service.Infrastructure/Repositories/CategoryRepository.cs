@@ -2,6 +2,7 @@
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Models.Category.DTOs;
+using VoltFlow.Service.Core.Models.Category.Request;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Pagination;
 using VoltFlow.Service.Core.Tools;
@@ -80,7 +81,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         }
 
 
-        public async Task<ServiceResponse<CategoryDTO>> AddCategoryCommand(string name)
+        public async Task<ServiceResponse<CategoryDTO>> AddCategory(string name)
         {
             try
             {
@@ -108,14 +109,14 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             }
         }
 
-        public async Task<bool> CategoryExistsByName(string name)
+        public async Task<CategoryDTO?> CategoryExistsByName(string name)
         {
             var response = await _allCategoryLazy.GetValueAsync();
 
-            if (response._Data == null) return false;
+            if (response._Data == null) return null;
 
             return response._Data.Categories
-                .Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
         private async Task<ServiceResponse<CategoriesDTO>> FetchCategoriesFromDb()
@@ -137,6 +138,39 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             {
                 // Tutaj warto dodać logowanie ex
                 return ServiceResponse<CategoriesDTO>.Failure("Błąd podczas pobierania kategorii z bazy.", 500);
+            }
+        }
+
+        public async Task<ServiceResponse<CategoryDTO>> UpdateCategory(UpdateCategoryRequest request)
+        {
+            try
+            {
+                var category = await _context.Set<Category>()
+                    .FirstOrDefaultAsync(c => c.IdCategory == request.Id);
+
+                if (category == null)
+                    return ServiceResponse<CategoryDTO>.Failure("Nie znaleziono kategorii o podanym ID.", 404);
+
+                // Mapowanie wartości
+                category.Name = request.Name;
+                category.IsObsolete = request.IsObsolete;
+
+                await _context.SaveChangesAsync();
+
+                // Inwalidacja cache
+                _allCategoryLazy = new LazyValue<ServiceResponse<CategoriesDTO>>(FetchCategoriesFromDb);
+
+                return ServiceResponse<CategoryDTO>.Result(new CategoryDTO
+                {
+                    Id = category.IdCategory,
+                    Name = category.Name,
+                    IsObsolete = category.IsObsolete
+                });
+            }
+            catch (Exception ex)
+            {
+                // Tu warto dodać logowanie ex
+                return ServiceResponse<CategoryDTO>.Failure("Błąd serwisu bazy danych podczas aktualizacji.", 500);
             }
         }
     }
