@@ -15,15 +15,15 @@ namespace VoltFlow.Service.Application.Services
             _elementRepository = elementRepository;
         }
 
-        public async Task<ServiceResponse<ElementDTO>> CreateElement(string name)
+        public async Task<ServiceResponse<ElementDTO>> CreateElement(CreateElementRequest request)
         {
-            var validation = ValidateName(name);
+            var validation = ValidateName(request.Name);
             if (!validation._IsSuccess) return validation;
 
-            var duplicateCheck = await CheckForDuplicateName(name);
+            var duplicateCheck = await CheckForDuplicateName(request.Name);
             if (!duplicateCheck._IsSuccess) return duplicateCheck;
 
-            return await _elementRepository.AddElement(name);
+            return await _elementRepository.AddElement(request);
         }
 
         public async Task<ServiceResponse<ElementDTO>> UpdateElement(UpdateElementRequest request)
@@ -81,7 +81,8 @@ namespace VoltFlow.Service.Application.Services
         private bool IsDataUnchanged(ElementDTO current, UpdateElementRequest request)
         {
             return current.Name.Equals(request.Name.Trim(), StringComparison.OrdinalIgnoreCase)
-                   && current.IsObsolete == request.IsObsolete;
+                   && current.IsObsolete == request.IsObsolete && current.ElementGroupId == request.ElementGroupId
+                   && current.Description == request.Description;
         }
 
         #endregion

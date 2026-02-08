@@ -9,7 +9,7 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
         Task<ServiceResponse<ElementsDTO>> GetElementsQuery();
         Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id);
         Task<ServiceResponse<PagedResultDTO<ElementDTO>>> GetElementsPagedByNameQuery(string? name, int page, int size);
-        Task<ServiceResponse<ElementDTO>> AddElement(string name);
+        Task<ServiceResponse<ElementDTO>> AddElement(CreateElementRequest name);
         Task<ServiceResponse<ElementDTO>> UpdateElement(UpdateElementRequest request);
     }
 }

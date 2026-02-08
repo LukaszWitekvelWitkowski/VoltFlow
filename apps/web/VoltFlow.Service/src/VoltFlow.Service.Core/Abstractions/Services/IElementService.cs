@@ -6,7 +6,7 @@ namespace VoltFlow.Service.Core.Abstractions.Services
 {
     public interface IElementService
     {
-        Task<ServiceResponse<ElementDTO>> CreateElement(string name);
+        Task<ServiceResponse<ElementDTO>> CreateElement(CreateElementRequest name);
 
         Task<ServiceResponse<ElementDTO>> UpdateElement(UpdateElementRequest request);
     }

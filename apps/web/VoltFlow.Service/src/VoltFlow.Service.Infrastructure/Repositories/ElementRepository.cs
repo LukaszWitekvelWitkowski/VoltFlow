@@ -20,15 +20,25 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             _allElementsLazy = new LazyValue<ServiceResponse<ElementsDTO>>(FetchElementsFromDb);
         }
 
-        public async Task<ServiceResponse<ElementDTO>> AddElement(string name)
+        public async Task<ServiceResponse<ElementDTO>> AddElement(CreateElementRequest name)
         {
             try
             {
-  
+                var elementGroup = await _context.Set<ElementGroup>()
+                    .FirstOrDefaultAsync(eg => eg.IdElementGroup == name.ElementGroupId);
+
+                if (elementGroup == null)
+                {
+                    return ServiceResponse<ElementDTO>.Failure("Nie znaleziono grupy elementów o podanym ID.", 404);
+                }
+
                 var newElement = new Element
                 {
-                    Name = name,
+                    Name = name.Name,
+                    Description = name.Description,
+                    ElementGroupId = name.ElementGroupId,
                     IsObsolete = false,
+                    ElementGroup = elementGroup
                 };
 
                 _context.Set<Element>().Add(newElement);
@@ -98,13 +108,24 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 var element = await _context.Set<Element>()
                     .FirstOrDefaultAsync(e => e.IdElement == request.Id);
 
+                var elementGroup = await _context.Set<ElementGroup>()
+                    .FirstOrDefaultAsync(eg => eg.IdElementGroup == request.ElementGroupId);
+
                 if (element == null)
                 {
                     return ServiceResponse<ElementDTO>.Failure("Nie znaleziono elementu o podanym ID.", 404);
                 }
 
+                if (elementGroup == null)
+                {
+                    return ServiceResponse<ElementDTO>.Failure("Nie znaleziono grupy elementów o podanym ID.", 404);
+                }
+
                 element.Name = request.Name.Trim();
                 element.IsObsolete = request.IsObsolete;
+                element.ElementGroupId = request.ElementGroupId;
+                element.Description = request.Description;
+                element.ElementGroup = elementGroup;
 
                 await _context.SaveChangesAsync();
 

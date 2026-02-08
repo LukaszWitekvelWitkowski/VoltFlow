@@ -32,7 +32,7 @@ namespace VoltFlow.Service.API.Controllers
         #endregion
         #region POST
         [HttpPost("")]
-        public async Task<IActionResult> CreateElementAsync([FromBody] CreateElementRequest request) => await HandlerAsync(new CreateElementCommand(request.Name));
+        public async Task<IActionResult> CreateElementAsync([FromBody] CreateElementRequest request) => await HandlerAsync(new CreateElementCommand(request));
 
         #endregion
 

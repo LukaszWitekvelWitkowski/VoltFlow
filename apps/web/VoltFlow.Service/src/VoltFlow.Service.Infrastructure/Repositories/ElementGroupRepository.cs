@@ -3,6 +3,7 @@ using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.ElementGroup.DTOs;
+using VoltFlow.Service.Core.Models.ElementGroup.Request;
 using VoltFlow.Service.Core.Pagination;
 using VoltFlow.Service.Core.Tools;
 using VoltFlow.Service.Infrastructure.Data;
@@ -12,7 +13,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
     public class ElementGroupRepository : IElementGroupRepository
     {
         private readonly VoltFlowDbContext _context;
-        private readonly LazyValue<ServiceResponse<ElementGroupsDTO>> _allElementGroupLazy;
+        private LazyValue<ServiceResponse<ElementGroupsDTO>> _allElementGroupLazy;
 
         public ElementGroupRepository(VoltFlowDbContext context)
         {
@@ -58,7 +59,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             return PagedHelper.ToPagedResponse(
                 listResponse,
                 name,
-                eg => eg.Name, // Filtrowanie po nazwie
+                eg => eg.Name,
                 page,
                 size
             );
@@ -85,6 +86,85 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             {
          
                 return ServiceResponse<ElementGroupsDTO>.Failure("Błąd podczas pobierania grup elementów z bazy.", 500);
+            }
+        }
+
+        public async Task<ServiceResponse<ElementGroupDTO>> AddElementGroup(CreateElementGroupRequest request)
+        {
+            try
+            {
+                var category = await _context.Set<Category>()
+                        .FirstAsync(c => c.IdCategory == request.CategoryId);
+    
+                var newGroup = new ElementGroup
+                {
+                    Name = request.Name.Trim(),
+                    CategoryId = request.CategoryId, 
+                    IsObsolete = false,
+                    Category = category
+                };
+
+                _context.Set<ElementGroup>().Add(newGroup);
+                await _context.SaveChangesAsync();
+
+                _allElementGroupLazy = new LazyValue<ServiceResponse<ElementGroupsDTO>>(FetchElementGroupsFromDb);
+
+                var allGroupsResponse = await _allElementGroupLazy.GetValueAsync();
+                var groupDTO = allGroupsResponse._Data?.ElementGroups
+                    .FirstOrDefault(g => g.IdElementGroup == newGroup.IdElementGroup);
+
+                return ServiceResponse<ElementGroupDTO>.Result(groupDTO!);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse<ElementGroupDTO>.Failure("Nie udało się zapisać grupy elementów w bazie danych.", 500);
+            }
+        }
+
+        public async Task<ServiceResponse<ElementGroupDTO>> UpdateElementGroup(UpdateElementGroupRequest request)
+        {
+            try
+            {
+                var elementGroup = await _context.Set<ElementGroup>()
+                    .FirstOrDefaultAsync(eg => eg.IdElementGroup == request.IdElementGroup);
+
+                if (elementGroup == null)
+                {
+                    return ServiceResponse<ElementGroupDTO>.Failure("Nie znaleziono grupy elementów o podanym ID.", 404);
+                }
+
+
+                var category = await _context.Set<Category>()
+                    .FirstOrDefaultAsync(c => c.IdCategory == request.CategoryId);
+
+                if (category == null)
+                {
+                    return ServiceResponse<ElementGroupDTO>.Failure("Nie znaleziono kategorii o podanym ID.", 404);
+                }
+
+
+                elementGroup.Name = request.Name.Trim();
+                elementGroup.IsObsolete = request.IsObsolete;
+                elementGroup.CategoryId = request.CategoryId;
+                elementGroup.Category = category; 
+     
+                await _context.SaveChangesAsync();
+
+      
+                _allElementGroupLazy = new LazyValue<ServiceResponse<ElementGroupsDTO>>(FetchElementGroupsFromDb);
+
+
+                return ServiceResponse<ElementGroupDTO>.Result(new ElementGroupDTO
+                {
+                    IdElementGroup = elementGroup.IdElementGroup,
+                    Name = elementGroup.Name,
+                    IsObsolete = elementGroup.IsObsolete,
+                    CategoryId = elementGroup.CategoryId
+                });
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse<ElementGroupDTO>.Failure("Wystąpił błąd bazy danych podczas aktualizacji grupy elementów.", 500);
             }
         }
     }

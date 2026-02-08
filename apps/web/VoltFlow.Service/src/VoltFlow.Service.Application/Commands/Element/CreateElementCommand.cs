@@ -1,15 +1,16 @@
 ﻿using MediatR;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.Element.DTOs;
+using VoltFlow.Service.Core.Models.Element.Request;
 
 namespace VoltFlow.Service.Application.Commands.Element
 {
     public class CreateElementCommand :IRequest<ServiceResponse<ElementDTO>>
     {
-        public string Name { get; set; }
-        public CreateElementCommand(string name)
+        public CreateElementRequest _request { get;}
+        public CreateElementCommand(CreateElementRequest request)
         {
-            Name = name;
+            _request = request;
         }
     }
 }

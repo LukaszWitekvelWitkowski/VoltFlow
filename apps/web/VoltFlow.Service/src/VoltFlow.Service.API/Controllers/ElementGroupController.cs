@@ -1,7 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VoltFlow.Service.API.Base;
+using VoltFlow.Service.Application.Commands.Element;
+using VoltFlow.Service.Application.Commands.ElementGroup;
 using VoltFlow.Service.Application.Queries.ElementGroup;
+using VoltFlow.Service.Core.Models.Element.Request;
+using VoltFlow.Service.Core.Models.ElementGroup.Request;
 using VoltFlow.Service.Core.Models.Requests;
 
 namespace VoltFlow.Service.API.Controllers
@@ -26,13 +30,15 @@ namespace VoltFlow.Service.API.Controllers
 
         #endregion
         #region POST
+        [HttpPost("")]
+        public async Task<IActionResult> CreateElementGroupAsync([FromBody] CreateElementGroupRequest request) => await HandlerAsync(new CreateElementGroupCommand(request));
 
         #endregion
+
+
         #region PUT
-
-        #endregion
-        #region DELETE
-
+        [HttpPut("")]
+        public async Task<IActionResult> UpdateElementGroupAsync([FromBody] UpdateElementGroupRequest request) => await HandlerAsync(new UpdateElementGroupCommand(request));
         #endregion
     }
 }
