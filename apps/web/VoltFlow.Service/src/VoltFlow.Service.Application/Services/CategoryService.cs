@@ -14,38 +14,39 @@ namespace VoltFlow.Service.Application.Services
 
         public async Task<ServiceResponse<CategoryDTO>> CreateCategory(string name)
         {
-            // 1. Walidacja
+            // 1. Validation
             if (string.IsNullOrWhiteSpace(name))
                 throw new ValidationEntityException("Nazwa kategorii nie może być pusta.");
 
-            // 2. Optymalne sprawdzenie duplikatu (bez pobierania całej listy)
+            // 2. Optimal duplicate checking (without downloading the entire list)
             if (await _categoryRepository.IsExists(name))
                 throw new ConflictException("Kategoria o podanej nazwie już istnieje w systemie.");
 
-            // 3. Zapis
+            // 3. Save
             var result = await _categoryRepository.AddCategory(name);
             return ServiceResponse<CategoryDTO>.Success(result._Data!);
         }
 
         public async Task<ServiceResponse<CategoryDTO>> UpdateCategory(UpdateCategoryRequest request)
         {
-            // 1. Walidacja nazwy
+            // 1. Name validation
             if (string.IsNullOrWhiteSpace(request.Name))
                 throw new ValidationEntityException("Nazwa kategorii nie może być pusta.");
 
-            // 2. Pobranie aktualnego stanu (Repozytorium powinno rzucać błąd lub zwracać null)
+            // 2. Get the current state (The repository should throw an error or return null)
             var currentCategory = (await _categoryRepository.GetCategoryByIdQuery(request.Id))._Data
                                   ?? throw new NotFoundException("Kategoria nie istnieje.");
 
-            // 3. Sprawdzenie czy dane się zmieniły (Idempotentność)
+            // 3. Checking if data has changed (Idempotence)
             if (IsDataUnchanged(currentCategory, request))
+
                 return ServiceResponse<CategoryDTO>.Success(currentCategory);
 
-            // 4. Sprawdzenie duplikatu przy zmianie nazwy
+            // 4. Checking for duplicates when renaming
             if (await _categoryRepository.IsExists(request.Name, request.Id))
                 throw new ConflictException("Kategoria o podanej nazwie już istnieje w systemie.");
 
-            // 5. Aktualizacja
+            // 5. Update
             var updated = await _categoryRepository.UpdateCategory(request);
             return ServiceResponse<CategoryDTO>.Success(updated._Data!);
         }

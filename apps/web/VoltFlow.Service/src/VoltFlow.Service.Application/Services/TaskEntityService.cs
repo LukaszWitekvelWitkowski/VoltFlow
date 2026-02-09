@@ -27,15 +27,15 @@ namespace VoltFlow.Service.Application.Services
 
         public async Task<ServiceResponse<TaskEntityDTO>> UpdateTaskEntity(UpdateTaskEntityRequest request)
         {
-            // 1. Pobranie (Repozytorium rzuci NotFound, jeśli nie znajdzie)
+            // 1. Download (Repository will throw NotFound if it doesn't find it)
             var current = (await _taskRepository.GetTaskEntityByIdQuery(request.IdTask))._Data
                           ?? throw new NotFoundException("Zadanie nie istnieje.");
 
-            // 2. Sprawdzenie czy jest sens aktualizować
+            // 2. Checking if it makes sense to update
             if (IsDataUnchanged(current, request))
                 return ServiceResponse<TaskEntityDTO>.Success(current);
 
-            // 3. Walidacja duplikatu
+            // 3. Duplicate validation
             if (await _taskRepository.IsExists(request.Description, request.TypeTask, request.IdTask))
                 throw new ConflictException("Istnieje już inne zadanie o tym opisie.");
 
