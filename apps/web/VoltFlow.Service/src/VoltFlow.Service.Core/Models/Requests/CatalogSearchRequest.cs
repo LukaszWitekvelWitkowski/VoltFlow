@@ -4,11 +4,12 @@ namespace VoltFlow.Service.Core.Models.Requests
 {
     public class CatalogSearchRequest : PaginationParams
     {
-        public string? CategoryName { get; }
-        public int? CategoryId { get; }
-        public string? ElementGroupName { get; }
-        public int? ElementGroupId { get; }
-        public string? ElementName { get; }
-        public int? ElementId { get; }
+        public string? CategoryName { get; set; }
+        public int? CategoryId { get; set; }
+        public string? ElementGroupName { get; set; }
+        public int? ElementGroupId { get; set; }
+        public string? ElementName { get; set; }
+        public int? ElementId { get; set; }
+
     }
 }

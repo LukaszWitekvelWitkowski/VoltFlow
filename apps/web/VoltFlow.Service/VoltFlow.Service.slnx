@@ -4,5 +4,5 @@
   <Project Path="src/VoltFlow.Service.Core/VoltFlow.Service.Core.csproj" />
   <Project Path="src/VoltFlow.Service.DataBaseRefresher/VoltFlow.Service.DataBaseRefresher.csproj" Id="1adb39ae-fa6b-4376-90d9-c7d3627e5324" />
   <Project Path="src/VoltFlow.Service.Infrastructure/VoltFlow.Service.Infrastructure.csproj" Id="c63e1369-0b00-4d06-abee-51c2825a268c" />
-  <Project Path="src/VoltFlow.Service.UnitTest/VoltFlow.Service.UnitTest.csproj" />
+  <Project Path="src/VoltFlow.Service.Test/VoltFlow.Service.Test.csproj" />
 </Solution>
