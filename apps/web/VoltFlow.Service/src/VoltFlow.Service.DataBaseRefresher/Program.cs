@@ -56,6 +56,15 @@ namespace VoltFlow.Service.DataBaseRefresher
                 Console.WriteLine("Success: Database structure created correctly.");
                 Console.ResetColor();
 
+                await context.Database.ExecuteSqlRawAsync(DataBaseTableDesigner.GenerateCollationUpdateScript("Category", "Name"));
+                await context.Database.ExecuteSqlRawAsync(DataBaseTableDesigner.GenerateCollationUpdateScript("ElementGroup", "Name"));
+                await context.Database.ExecuteSqlRawAsync(DataBaseTableDesigner.GenerateCollationUpdateScript("Element", "Name"));
+                await context.Database.ExecuteSqlRawAsync(DataBaseTableDesigner.GenerateCollationUpdateScript("Element", "Description"));
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Success: Collation updated successfully.");
+                Console.ResetColor();
+
                 // 3. Seed data from SQL files
                 await DataSeeder.SeedAsync(context);
 

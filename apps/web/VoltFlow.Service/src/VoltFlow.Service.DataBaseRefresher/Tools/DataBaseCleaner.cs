@@ -17,7 +17,7 @@ namespace VoltFlow.Service.DataBaseRefresher.Tools
             Console.WriteLine("Starting deep cleanup of PostgreSQL database...");
             Console.ResetColor();
 
-            // PostgreSQL wymaga czasami zresetowania puli połączeń przy drastycznych zmianach schematu
+            // PostgreSQL sometimes requires resetting the connection pool after drastic schema changes
             var conn = _context.Database.GetDbConnection();
             if (conn.State == System.Data.ConnectionState.Open) conn.Close();
 
@@ -32,7 +32,7 @@ namespace VoltFlow.Service.DataBaseRefresher.Tools
 
         public void DropForeignKeys()
         {
-            // Dodajemy quote_ident wokół nazwy tabeli i schematu
+            // We add quote_ident around the table name and schema
             var sql = @"
             DO $$ DECLARE
                 r RECORD;
@@ -80,7 +80,6 @@ namespace VoltFlow.Service.DataBaseRefresher.Tools
         }
         public void DropAllTables()
         {
-            // Kluczowe: PostgreSQL przy dużych literach musi mieć CASCADE i poprawne cytowanie
             var sql = @"
             DO $$ DECLARE
                 r RECORD;

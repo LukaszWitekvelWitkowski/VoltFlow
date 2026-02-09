@@ -76,6 +76,7 @@ Write-Host "Project Root: $rootPath" -ForegroundColor Gray
 $CONTAINER_NAME  = "portfolio_db"
 $SQL_SCRIPT       = Join-Path $rootPath "init_role.sql"
 $SQL_SCRIPT_USER  = Join-Path $rootPath "init_user.sql"
+$SQL_SCRIPT_USER_ROLE = Join-Path $rootPath "init_user_role.sql"
 
 # --- 3. DOCKER STATUS CHECK ---
 try {
@@ -125,6 +126,23 @@ Create-SqlInitFile -Path $SQL_SCRIPT -SqlContent $roleSql -Label "Role Privilege
 
 $userSql = "CREATE USER $($env:DB_APP_USER) WITH PASSWORD '$($env:DB_APP_PASSWORD)';"
 Create-SqlInitFile -Path $SQL_SCRIPT_USER -SqlContent $userSql -Label "App User Creation"
+
+$userRoleSql = @"
+\c $($env:DB_NAME);
+
+    GRANT USAGE ON SCHEMA public TO "$($env:DB_APP_USER)";
+
+    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "$($env:DB_APP_USER)";
+    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO "$($env:DB_APP_USER)";
+
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO "$($env:DB_APP_USER)";
+
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+    GRANT USAGE, SELECT ON SEQUENCES TO "$($env:DB_APP_USER)";
+"@
+
+Create-SqlInitFile -Path $SQL_SCRIPT_USER_ROLE -SqlContent $userRoleSql -Label "App User Creation Role"
 
 # --- 7. INFRASTRUCTURE LIFECYCLE ---
 $existing = docker ps -a --format '{{.Names}}' | Select-String "^${CONTAINER_NAME}$"
@@ -185,5 +203,6 @@ if ($dbExists -ne "1") {
 # Execute generated scripts
 Execute-Styled-Sql -FilePath $SQL_SCRIPT -Description "Role Bootstrap"
 Execute-Styled-Sql -FilePath $SQL_SCRIPT_USER -Description "Application User Provisioning"
+Execute-Styled-Sql -FilePath $SQL_SCRIPT_USER_ROLE -Description "Application User Provisioning Role"
 
 Write-Host "`nSUCCESS: Infrastructure is up and running!" -ForegroundColor Green

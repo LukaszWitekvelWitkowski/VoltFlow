@@ -5,9 +5,9 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.DataBaseRefresher.Tools
 {
-    public class PortfolioDbContextFactory : IDesignTimeDbContextFactory<PortfolioDbContext>
+    public class PortfolioDbContextFactory : IDesignTimeDbContextFactory<VoltFlowDbContext>
     {
-        public PortfolioDbContext CreateDbContext(string[] args)
+        public VoltFlowDbContext CreateDbContext(string[] args)
         {
 
             // 1. Calculate the path to the API project
@@ -26,16 +26,16 @@ namespace VoltFlow.Service.DataBaseRefresher.Tools
                 .AddJsonFile("appsettings.json", optional: false)
                 .Build();
 
-            var builder = new DbContextOptionsBuilder<PortfolioDbContext>();
+            var builder = new DbContextOptionsBuilder<VoltFlowDbContext>();
             var connectionString = configuration.GetConnectionString("AdminConnection");
 
             builder.UseNpgsql(connectionString);
 
-            return new PortfolioDbContext(builder.Options);
+            return new VoltFlowDbContext(builder.Options);
         }
 
         //         We add a helper async method to your Refresh method
-        public async Task<PortfolioDbContext> CreateDbContextAsync(string[] args)
+        public async Task<VoltFlowDbContext> CreateDbContextAsync(string[] args)
         {
             return await Task.Run(() => CreateDbContext(args));
         }

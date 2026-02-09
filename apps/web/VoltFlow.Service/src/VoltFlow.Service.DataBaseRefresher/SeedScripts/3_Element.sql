@@ -1,4 +1,4 @@
 INSERT INTO "Element" ("IdElement", "Name", "Description", "IsObsolete", "ElementGroupId") VALUES
-(1, 'Rezystor 10k Ohm', 'Rezystor wÍglowy 0.25W', false, 1),
-(2, '£oøysko 608-ZZ', '£oøysko do silnikÛw elektrycznych', false, 2),
-(3, 'PrzewÛd miedziany 1.5mm', 'PrzewÛd instalacyjny jednoøy≥owy', false, 3);
+(1, 'Rezystor 10k Ohm', 'Rezystor wƒôglowy 0.25W', false, 1),
+(2, '≈Åo≈ºysko 608-ZZ', '≈Åo≈ºysko do silnik√≥w elektrycznych', false, 2),
+(3, 'Przew√≥d miedziany 1.5mm', 'Przew√≥d instalacyjny jedno≈ºy≈Çowy', false, 3);
