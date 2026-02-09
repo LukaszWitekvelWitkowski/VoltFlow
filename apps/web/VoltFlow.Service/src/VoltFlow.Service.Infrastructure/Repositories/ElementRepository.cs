@@ -1,174 +1,211 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Exceptions;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.Element.DTOs;
 using VoltFlow.Service.Core.Models.Element.Request;
 using VoltFlow.Service.Core.Pagination;
-using VoltFlow.Service.Core.Tools;
 using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class ElementRepository : IElementRepository
+    public class ElementRepository : BaseRepository, IElementRepository
     {
-        private readonly VoltFlowDbContext _context;
-        private  LazyValue<ServiceResponse<ElementsDTO>> _allElementsLazy;
-        public ElementRepository(VoltFlowDbContext context)
-        {
-            _context = context;
-            _allElementsLazy = new LazyValue<ServiceResponse<ElementsDTO>>(FetchElementsFromDb);
-        }
+       
+        private ElementsDTO? _cache;
 
-        public async Task<ServiceResponse<ElementDTO>> AddElement(CreateElementRequest name)
+        public ElementRepository(VoltFlowDbContext context, IConfiguration configuration) : base(context, configuration) 
+        { }
+  
+        private async Task<ElementsDTO> GetOrUpdateCacheAsync()
         {
+            if (!_isCacheEnabled) return null!;
+
+            if (_cache != null) return _cache;
+
+            await _lock.WaitAsync();
             try
             {
-                var elementGroup = await _context.Set<ElementGroup>()
-                    .FirstOrDefaultAsync(eg => eg.IdElementGroup == name.ElementGroupId);
-
-                if (elementGroup == null)
+                if (_cache == null)
                 {
-                    return ServiceResponse<ElementDTO>.Failure("Nie znaleziono grupy elementów o podanym ID.", 404);
+                    var count = await _context.Set<Element>().CountAsync();
+                    if (count > _maxCacheThreshold)
+                    {
+                        _isCacheEnabled = false; 
+                        return null!;
+                    }
+
+                    var data = await FetchFromDbInternal();
+                    _cache = new ElementsDTO { Elements = data };
                 }
-
-                var newElement = new Element
-                {
-                    Name = name.Name,
-                    Description = name.Description,
-                    ElementGroupId = name.ElementGroupId,
-                    IsObsolete = false,
-                    ElementGroup = elementGroup
-                };
-
-                _context.Set<Element>().Add(newElement);
-                await _context.SaveChangesAsync();
-
-
-                _allElementsLazy = new LazyValue<ServiceResponse<ElementsDTO>>(FetchElementsFromDb);
-
-
-                var allElementsResponse = await _allElementsLazy.GetValueAsync();
-                var elementDTO = allElementsResponse._Data?.Elements
-                    .FirstOrDefault(e => e.IdElement == newElement.IdElement);
-
-                return ServiceResponse<ElementDTO>.Result(elementDTO!);
+                return _cache;
             }
-            catch (Exception ex)
+            finally
             {
-                return ServiceResponse<ElementDTO>.Failure("Nie udało się zapisać elementu w bazie danych.", 500);
+                _lock.Release();
             }
         }
 
-        public async Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id)
+        public async Task<ServiceResponse<ElementDTO>> AddElement(CreateElementRequest request)
         {
-            var response = await _allElementsLazy.GetValueAsync();
 
-            if (!response._IsSuccess)
+            var elemntGroupExists = await _context.Set<ElementGroup>()
+                .AnyAsync(eg => eg.IdElementGroup == request.ElementGroupId);
+
+            if (!elemntGroupExists)
+                throw new NotFoundException("Nie znaleziono grupy elementów o podanym Id.");
+
+            var newElement = new Element
             {
-                return ServiceResponse<ElementDTO>.Failure(response._Message, response._StatusCode);
-            }
+                Name = request.Name.Trim(),
+                Description = request.Description,
+                ElementGroupId = request.ElementGroupId,
+                IsObsolete = false
+            };
 
-            var element = response._Data?.Elements.FirstOrDefault(e => e.IdElement == id);
+            _context.Set<Element>().Add(newElement);
+            await _context.SaveChangesAsync();
 
-            return ServiceResponse<ElementDTO>.Result(element);
-        }
+            _cache = null;
 
-        public async Task<ServiceResponse<PagedResultDTO<ElementDTO>>> GetElementsPagedByNameQuery(string? name, int page, int size)
-        {
-            var response = await _allElementsLazy.GetValueAsync();
-
-            if (!response._IsSuccess)
-            {
-                return ServiceResponse<PagedResultDTO<ElementDTO>>.Failure(response._Message, response._StatusCode);
-            }
-
-            var listResponse = ServiceResponse<List<ElementDTO>>.Result((List<ElementDTO>?)(response._Data?.Elements ?? new List<ElementDTO>()));
-
-            return PagedHelper.ToPagedResponse(
-                listResponse,
-                name,
-                e => e.Name,
-                page,
-                size
-            );
+            return ServiceResponse<ElementDTO>.Success(MapToDto(newElement));
         }
 
         public async Task<ServiceResponse<ElementsDTO>> GetElementsQuery()
         {
-            var fullResponse = await _allElementsLazy.GetValueAsync();
+            var cache = await GetOrUpdateCacheAsync();
 
-            return ServiceResponse<ElementsDTO>.Result(fullResponse._Data);
+            if (cache != null)
+                return ServiceResponse<ElementsDTO>.Result(cache);
+
+            var dbData = await FetchFromDbInternal();
+            return ServiceResponse<ElementsDTO>.Result(new ElementsDTO { Elements = dbData });
+        }
+
+        public async Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id)
+        {
+            var cache = await GetOrUpdateCacheAsync();
+            if (cache != null)
+            {
+                var item = cache.Elements.FirstOrDefault(e => e.IdElement == id);
+                return ServiceResponse<ElementDTO>.Result(item!);
+            }
+
+            var element = await _context.Set<Element>()
+                .AsNoTracking()
+                .Where(e => e.IdElement == id)
+                .Select(e => MapToDto(e))
+                .FirstOrDefaultAsync();
+
+            return ServiceResponse<ElementDTO>.Result(element!);
+        }
+
+        private async Task<IEnumerable<ElementDTO>> FetchFromDbInternal()
+        {
+            return await _context.Set<Element>()
+                .AsNoTracking()
+                .Select(e => MapToDto(e))
+                .ToListAsync();
+        }
+
+        private static ElementDTO MapToDto(Element e) => new ElementDTO
+        {
+            IdElement = e.IdElement,
+            Name = e.Name,
+            Description = e.Description,
+            IsObsolete = e.IsObsolete,
+            ElementGroupId = e.ElementGroupId
+        };
+
+
+        public async Task<ServiceResponse<PagedResultDTO<ElementDTO>>> GetElementsPagedByNameQuery(string? name, int page, int size)
+        {
+            var cache = await GetOrUpdateCacheAsync();
+
+            if (cache != null)
+            {
+                var sourceResponse = ServiceResponse<IEnumerable<ElementDTO>>.Result(cache.Elements);
+
+                return PagedHelper.ToPagedResponse(
+                    sourceResponse,
+                    name,
+                    eg => eg.Name,
+                    page,
+                    size
+                );
+            }
+
+   
+            var dbQuery = _context.Set<Element>().AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var search = name.Trim().ToLower();
+                dbQuery = dbQuery.Where(e => e.Name.ToLower().Contains(search));
+            }
+
+            var dbTotalCount = await dbQuery.CountAsync();
+            var dbItems = await dbQuery
+                .OrderBy(e => e.Name)
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Select(e => MapToDto(e))
+                .ToListAsync();
+
+            var dbPagedResult = new PagedResultDTO<ElementDTO>(dbItems, dbTotalCount, page, size);
+
+            return ServiceResponse<PagedResultDTO<ElementDTO>>.Result(dbPagedResult);
         }
 
         public async Task<ServiceResponse<ElementDTO>> UpdateElement(UpdateElementRequest request)
         {
+            // 1. Aktualizacja w bazie
+            var element = await _context.Set<Element>()
+                .FirstOrDefaultAsync(e => e.IdElement == request.Id);
+
+            if (element == null)
+                throw new NotFoundException("Nie znaleziono elementu do aktualizacji.");
+
+            element.Name = request.Name.Trim();
+            element.IsObsolete = request.IsObsolete;
+            element.ElementGroupId = request.ElementGroupId;
+            element.Description = request.Description;
+
+            await _context.SaveChangesAsync();
+
+            // 2. Kluczowy moment: Inwalidacja cache
+            // Po udanym zapisie ustawiamy cache na null, aby następny odczyt pobrał świeże dane
+            await _lock.WaitAsync();
             try
             {
-                var element = await _context.Set<Element>()
-                    .FirstOrDefaultAsync(e => e.IdElement == request.Id);
-
-                var elementGroup = await _context.Set<ElementGroup>()
-                    .FirstOrDefaultAsync(eg => eg.IdElementGroup == request.ElementGroupId);
-
-                if (element == null)
-                {
-                    return ServiceResponse<ElementDTO>.Failure("Nie znaleziono elementu o podanym ID.", 404);
-                }
-
-                if (elementGroup == null)
-                {
-                    return ServiceResponse<ElementDTO>.Failure("Nie znaleziono grupy elementów o podanym ID.", 404);
-                }
-
-                element.Name = request.Name.Trim();
-                element.IsObsolete = request.IsObsolete;
-                element.ElementGroupId = request.ElementGroupId;
-                element.Description = request.Description;
-                element.ElementGroup = elementGroup;
-
-                await _context.SaveChangesAsync();
-
-                _allElementsLazy = new LazyValue<ServiceResponse<ElementsDTO>>(FetchElementsFromDb);
-
-
-                return ServiceResponse<ElementDTO>.Result(new ElementDTO
-                {
-                    IdElement = element.IdElement,
-                    Name = element.Name,
-                    IsObsolete = element.IsObsolete,
-                    Description = element.Description, // Przekazujemy istniejące dane
-                    ElementGroupId = element.ElementGroupId
-                });
+                _cache = null;
             }
-            catch (Exception ex)
+            finally
             {
-                return ServiceResponse<ElementDTO>.Failure("Wystąpił błąd bazy danych podczas aktualizacji elementu.", 500);
+                _lock.Release();
             }
+
+            return ServiceResponse<ElementDTO>.Success(MapToDto(element));
         }
 
-        private async Task<ServiceResponse<ElementsDTO>> FetchElementsFromDb()
+        public async Task<bool> IsExists(string name, int? id = null)
         {
-            try
-            {
-                var elementList = await _context.Set<Element>()
-                    .AsNoTracking() 
-                    .Select(e => new ElementDTO
-                    {
-                        IdElement = e.IdElement,
-                        Name = e.Name,
-                        Description = e.Description,
-                        IsObsolete = e.IsObsolete,
-                        ElementGroupId = e.ElementGroupId
-                    }).ToListAsync();
+            var cache = await GetOrUpdateCacheAsync();
+            var normalizedName = name?.Trim().ToLower() ?? string.Empty;
 
-                return ServiceResponse<ElementsDTO>.Result(new ElementsDTO { Elements = elementList });
-            }
-            catch (Exception ex)
+            if (cache != null)
             {
-         
-                return ServiceResponse<ElementsDTO>.Failure("Błąd podczas pobierania danych z bazy.", 500);
+                // Sprawdzenie w zbuforowanej liście
+                return cache.Elements.Any(e => (id == null || e.IdElement != id)
+                                               && e.Name.ToLower() == normalizedName);
             }
+
+            // Jeśli cache wyłączony - standardowe szybkie zapytanie SQL
+            return await _context.Set<Element>()
+                .AnyAsync(e => (id == null || e.IdElement != id)
+                               && e.Name.ToLower() == normalizedName);
         }
     }
-}
+ }

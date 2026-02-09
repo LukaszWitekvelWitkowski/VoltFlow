@@ -1,88 +1,66 @@
-﻿using VoltFlow.Service.Core.Abstractions.Repositories;
+﻿using System;
+using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Abstractions.Services;
+using VoltFlow.Service.Core.Exceptions;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.Element.DTOs;
 using VoltFlow.Service.Core.Models.Element.Request;
 
 namespace VoltFlow.Service.Application.Services
 {
-    public class ElementService : IElementService
+
+public class ElementService : IElementService
     {
         private readonly IElementRepository _elementRepository;
 
-        public ElementService(IElementRepository elementRepository)
-        {
-            _elementRepository = elementRepository;
-        }
+        public ElementService(IElementRepository elementRepository) => _elementRepository = elementRepository;
 
         public async Task<ServiceResponse<ElementDTO>> CreateElement(CreateElementRequest request)
         {
-            var validation = ValidateName(request.Name);
-            if (!validation._IsSuccess) return validation;
+            // 1. Walidacja biznesowa
+            if (string.IsNullOrWhiteSpace(request.Name))
+                throw new ValidationEntityException("Nazwa elementu nie może być pusta.");
 
-            var duplicateCheck = await CheckForDuplicateName(request.Name);
-            if (!duplicateCheck._IsSuccess) return duplicateCheck;
+            // 2. Szybkie sprawdzenie duplikatu w bazie
+            if (await _elementRepository.IsExists(request.Name))
+                throw new ConflictException("Element o podanej nazwie już istnieje w systemie.");
 
-            return await _elementRepository.AddElement(request);
+            // 3. Dodanie rekordu
+            var result = await _elementRepository.AddElement(request);
+            return ServiceResponse<ElementDTO>.Success(result._Data!);
         }
 
         public async Task<ServiceResponse<ElementDTO>> UpdateElement(UpdateElementRequest request)
         {
-            var validation = ValidateName(request.Name);
-            if (!validation._IsSuccess) return validation;
+            if (string.IsNullOrWhiteSpace(request.Name))
+                throw new ValidationEntityException("Nazwa elementu nie może być pusta.");
 
-            var allElementsResponse = await _elementRepository.GetElementsQuery();
-            var currentElement = allElementsResponse._Data?.Elements
-                .FirstOrDefault(e => e.IdElement == request.Id);
+            // 1. Pobranie danych do porównania
+            var currentResponse = await _elementRepository.GetElementByIdQuery(request.Id);
+            var currentElement = currentResponse._Data ?? throw new NotFoundException("Element nie istnieje.");
 
-            if (currentElement == null)
-            {
-                return ServiceResponse<ElementDTO>.Failure("Element nie istnieje.", 404);
-            }
-
+            // 2. Sprawdzenie czy nastąpiła jakakolwiek zmiana (Idempotentność)
             if (IsDataUnchanged(currentElement, request))
-            {
-                return ServiceResponse<ElementDTO>.Failure("Nie wprowadzono żadnych zmian.", 200);
-            }
+                return ServiceResponse<ElementDTO>.Success(currentElement);
 
-            var duplicateCheck = await CheckForDuplicateName(request.Name, request.Id);
-            if (!duplicateCheck._IsSuccess) return duplicateCheck;
+            // 3. Sprawdzenie duplikatu nazwy (z wyłączeniem edytowanego ID)
+            if (await _elementRepository.IsExists(request.Name, request.Id))
+                throw new ConflictException("Element o podanej nazwie już istnieje w systemie.");
 
-            return await _elementRepository.UpdateElement(request);
+            // 4. Aktualizacja
+            var updated = await _elementRepository.UpdateElement(request);
+            return ServiceResponse<ElementDTO>.Success(updated._Data!);
         }
 
         #region Private Helper Methods
 
-        private ServiceResponse<ElementDTO> ValidateName(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return ServiceResponse<ElementDTO>.Failure("Nazwa elementu nie może być pusta.", 400);
-            }
-            return ServiceResponse<ElementDTO>.Result(null!);
-        }
-
-        private async Task<ServiceResponse<ElementDTO>> CheckForDuplicateName(string name, int? excludeId = null)
-        {
-            var allElementsResponse = await _elementRepository.GetElementsQuery();
-
-            var exists = allElementsResponse._Data?.Elements
-                .Any(e => e.Name.Equals(name.Trim(), StringComparison.OrdinalIgnoreCase)
-                          && (excludeId == null || e.IdElement != excludeId));
-
-            if (exists == true)
-            {
-                return ServiceResponse<ElementDTO>.Failure("Element o podanej nazwie już istnieje w systemie.", 409);
-            }
-
-            return ServiceResponse<ElementDTO>.Result(null!);
-        }
-
         private bool IsDataUnchanged(ElementDTO current, UpdateElementRequest request)
         {
-            return current.Name.Equals(request.Name.Trim(), StringComparison.OrdinalIgnoreCase)
-                   && current.IsObsolete == request.IsObsolete && current.ElementGroupId == request.ElementGroupId
-                   && current.Description == request.Description;
+            // Pamiętaj o Trim() i obsłudze nulli w opisie
+            return current.Name.Trim().Equals(request.Name.Trim(), StringComparison.OrdinalIgnoreCase)
+                   && current.IsObsolete == request.IsObsolete
+                   && current.ElementGroupId == request.ElementGroupId
+                   && (current.Description ?? string.Empty) == (request.Description ?? string.Empty);
         }
 
         #endregion

@@ -5,6 +5,7 @@ using System.Text;
 using VoltFlow.Service.Application.Queries.Category;
 using VoltFlow.Service.Application.Services;
 using VoltFlow.Service.Core.Abstractions.Repositories;
+using VoltFlow.Service.Core.Abstractions.Services;
 using VoltFlow.Service.Infrastructure.Data;
 using VoltFlow.Service.Infrastructure.Handlers.Category;
 using VoltFlow.Service.Infrastructure.Repositories;
@@ -26,8 +27,8 @@ namespace VoltFlow.Service.API
             services.AddControllers();
 
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
-            typeof(GetCategoriesQuery).Assembly,   // Automatycznie rejestruje wszystko z warstwy Application
-            typeof(GetCategoriesHandlers).Assembly // Automatycznie rejestruje wszystko z warstwy Infrastructure
+            typeof(GetCategoriesQuery).Assembly,  
+            typeof(GetCategoriesHandlers).Assembly 
         ));
 
             // Upewnij się, że nazwa w appsettings to "DefaultConnection" czy "DataBase"
@@ -78,6 +79,9 @@ namespace VoltFlow.Service.API
             services.AddScoped<ICatalogRepository, CatalogRepository>();
 
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IElementService, ElementService>();
+            services.AddScoped<IElementGroupService, ElementGroupService>();
+            services.AddScoped<ITaskEntityService, TaskEntityService>();
 
         }
 

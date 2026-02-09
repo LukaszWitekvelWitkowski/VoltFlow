@@ -7,7 +7,7 @@ namespace VoltFlow.Service.Core.Entities
         public int IdTask { get; set; }
         public string Description { get; set; } = string.Empty;
         public WorkItemStatus Status { get; set; }
-        public TaskType TypeTask { get; set; }
+        public TaskEntityType TypeTask { get; set; }
 
         // Relationships
         public int JobId { get; set; }

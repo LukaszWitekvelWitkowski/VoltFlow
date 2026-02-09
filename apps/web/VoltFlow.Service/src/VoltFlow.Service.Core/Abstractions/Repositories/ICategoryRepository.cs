@@ -12,5 +12,6 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
         Task<CategoryDTO> CategoryExistsByName(string name);
         Task<ServiceResponse<CategoryDTO>> AddCategory(string categoryDto);
         Task<ServiceResponse<CategoryDTO>> UpdateCategory(UpdateCategoryRequest request);
+        Task<bool> IsExists(string name, int? id = null);
     }
 }

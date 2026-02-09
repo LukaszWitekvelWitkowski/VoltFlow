@@ -5,7 +5,7 @@ namespace VoltFlow.Service.Core.Pagination
     public static class PagedHelper
     {
         public static ServiceResponse<PagedResultDTO<T>> ToPagedResponse<T>(
-            ServiceResponse<List<T>> sourceResponse,
+            ServiceResponse<IEnumerable<T>> sourceResponse,
             string? filterValue,
             Func<T, string?> filterPropertySelector,
             int pageNumber,
@@ -39,11 +39,7 @@ namespace VoltFlow.Service.Core.Pagination
                 .ToList();
 
             // 4. Result
-            var pagedData = new PagedResultDTO<T>
-            {
-                Relusts = items,
-                TotalCount = totalCount
-            };
+            var pagedData = new PagedResultDTO<T> (items, totalCount, pageNumber, pageSize);
 
             return ServiceResponse<PagedResultDTO<T>>.Result(pagedData);
         }

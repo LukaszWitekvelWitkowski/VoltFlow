@@ -1,177 +1,190 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Exceptions;
 using VoltFlow.Service.Core.Models.Category.DTOs;
 using VoltFlow.Service.Core.Models.Category.Request;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Pagination;
-using VoltFlow.Service.Core.Tools;
 using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class CategoryRepository : ICategoryRepository
+    public class CategoryRepository : BaseRepository, ICategoryRepository
     {
-        private readonly VoltFlowDbContext _context;
-        private LazyValue<ServiceResponse<CategoriesDTO>> _allCategoryLazy;
+        private CategoriesDTO? _cache;
 
-        public CategoryRepository(VoltFlowDbContext context)
+        public CategoryRepository(VoltFlowDbContext context, IConfiguration configuration)
+            : base(context, configuration)
         {
-            _context = context;
-            // Inicjalizacja leniwego ładowania z delegatem do metody pobierającej
-            _allCategoryLazy = new LazyValue<ServiceResponse<CategoriesDTO>>(FetchCategoriesFromDb);
+        }
+
+        private async Task<CategoriesDTO> GetOrUpdateCacheAsync()
+        {
+            if (!_isCacheEnabled) return null!;
+            if (_cache != null) return _cache;
+
+            await _lock.WaitAsync();
+            try
+            {
+                if (_cache == null)
+                {
+                    var count = await _context.Set<Category>().CountAsync();
+                    if (count > _maxCacheThreshold)
+                    {
+                        _isCacheEnabled = false;
+                        return null!;
+                    }
+
+                    var data = await FetchFromDbInternal();
+                    _cache = new CategoriesDTO(data);
+                }
+                return _cache;
+            }
+            finally
+            {
+                _lock.Release();
+            }
         }
 
         public async Task<ServiceResponse<CategoriesDTO>> GetCategoriesQuery()
         {
-            var response = await _allCategoryLazy.GetValueAsync();
-            // Zwracamy surowe dane (kontener CategoriesDTO)
-            return ServiceResponse<CategoriesDTO>.Result(response._Data);
+            var cache = await GetOrUpdateCacheAsync();
+            if (cache != null) return ServiceResponse<CategoriesDTO>.Result(cache);
+
+            var dbData = await FetchFromDbInternal();
+            return ServiceResponse<CategoriesDTO>.Result(new CategoriesDTO(dbData));
         }
 
         public async Task<ServiceResponse<CategoryDTO>> GetCategoryByIdQuery(int id)
         {
-            var response = await _allCategoryLazy.GetValueAsync();
-
-            if (!response._IsSuccess)
+            var cache = await GetOrUpdateCacheAsync();
+            if (cache != null)
             {
-                return ServiceResponse<CategoryDTO>.Failure(response._Message, response._StatusCode);
+                var item = cache.Categories.FirstOrDefault(c => c.Id == id);
+                return ServiceResponse<CategoryDTO>.Result(item!);
             }
 
-            // Szukamy w pamięci RAM
-            var category = response._Data?.Categories.FirstOrDefault(c => c.Id == id);
+            var category = await _context.Set<Category>()
+                .AsNoTracking()
+                .Where(c => c.IdCategory == id)
+                .Select(c => MapToDto(c))
+                .FirstOrDefaultAsync();
 
-            return ServiceResponse<CategoryDTO>.Result(category);
+            return ServiceResponse<CategoryDTO>.Result(category!);
         }
 
         public async Task<ServiceResponse<PagedResultDTO<CategoryDTO>>> GetCategoriesPagedByNameQuery(string? name, int page, int size)
         {
-            var response = await _allCategoryLazy.GetValueAsync();
+            var cache = await GetOrUpdateCacheAsync();
 
-            if (!response._IsSuccess)
+            if (cache != null)
             {
-                return ServiceResponse<PagedResultDTO<CategoryDTO>>.Failure(response._Message, response._StatusCode);
+                var sourceResponse = ServiceResponse<IEnumerable<CategoryDTO>>.Result(cache.Categories);
+                return PagedHelper.ToPagedResponse(sourceResponse, name, c => c.Name, page, size);
             }
 
-            // Przygotowanie listy pod generycznego Helpera
-            var listResponse = ServiceResponse<List<CategoryDTO>>.Result((List<CategoryDTO>?)(response._Data?.Categories ?? new List<CategoryDTO>()));
-
-            return PagedHelper.ToPagedResponse(
-                listResponse,
-                name,
-                c => c.Name,
-                page,
-                size
-            );
-        }
-
-        public async Task<ServiceResponse<CategoryDTO>> GetCategoryByNameQuery(string name)
-        {
-            var response = await _allCategoryLazy.GetValueAsync();
-
-            if (!response._IsSuccess)
+            // Fallback SQL
+            var dbQuery = _context.Set<Category>().AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(name))
             {
-                return ServiceResponse<CategoryDTO>.Failure(response._Message, response._StatusCode);
+                var search = name.Trim().ToLower();
+                dbQuery = dbQuery.Where(c => c.Name.ToLower().Contains(search));
             }
 
-            var category = response._Data?.Categories
-                .FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            var dbTotal = await dbQuery.CountAsync();
+            var dbItems = await dbQuery.OrderBy(c => c.Name)
+                .Skip((page - 1) * size).Take(size)
+                .Select(c => MapToDto(c)).ToListAsync();
 
-            return ServiceResponse<CategoryDTO>.Result(category);
+            return ServiceResponse<PagedResultDTO<CategoryDTO>>.Result(
+                new PagedResultDTO<CategoryDTO>(dbItems, dbTotal, page, size));
         }
-
 
         public async Task<ServiceResponse<CategoryDTO>> AddCategory(string name)
         {
-            try
+            var newCategory = new Category
             {
-         
-                var newCategory = new Category
-                {
-                    Name = name,
-                    IsObsolete = false
+                Name = name.Trim(),
+                IsObsolete = false
+            };
 
-                };
+            _context.Set<Category>().Add(newCategory);
+            await _context.SaveChangesAsync();
 
-                _context.Set<Category>().Add(newCategory);
-                await _context.SaveChangesAsync();
+            _cache = null; // Inwalidacja
 
-                _allCategoryLazy = new LazyValue<ServiceResponse<CategoriesDTO>>(FetchCategoriesFromDb);
-
-                var categoryDTO = _allCategoryLazy.GetValueAsync().Result._Data?.Categories.FirstOrDefault(c => c.Id == newCategory.IdCategory);
-
-
-                return ServiceResponse<CategoryDTO>.Result(categoryDTO);
-            }
-            catch (Exception ex)
-            {
-                return ServiceResponse<CategoryDTO>.Failure("Nie udało się zapisać kategorii.", 500);
-            }
-        }
-
-        public async Task<CategoryDTO?> CategoryExistsByName(string name)
-        {
-            var response = await _allCategoryLazy.GetValueAsync();
-
-            if (response._Data == null) return null;
-
-            return response._Data.Categories
-                .FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private async Task<ServiceResponse<CategoriesDTO>> FetchCategoriesFromDb()
-        {
-            try
-            {
-                var categoriesList = await _context.Set<Category>()
-                    .AsNoTracking()
-                    .Select(c => new CategoryDTO
-                    {
-                        Id = c.IdCategory,
-                        Name = c.Name,
-                        IsObsolete = c.IsObsolete
-                    }).ToListAsync();
-
-                return ServiceResponse<CategoriesDTO>.Result(new CategoriesDTO(categoriesList));
-            }
-            catch (Exception)
-            {
-                // Tutaj warto dodać logowanie ex
-                return ServiceResponse<CategoriesDTO>.Failure("Błąd podczas pobierania kategorii z bazy.", 500);
-            }
+            return ServiceResponse<CategoryDTO>.Success(MapToDto(newCategory));
         }
 
         public async Task<ServiceResponse<CategoryDTO>> UpdateCategory(UpdateCategoryRequest request)
         {
-            try
+            var category = await _context.Set<Category>()
+                .FirstOrDefaultAsync(c => c.IdCategory == request.Id);
+
+            if (category == null)
+                throw new NotFoundException("Kategoria nie istnieje.");
+
+            category.Name = request.Name.Trim();
+            category.IsObsolete = request.IsObsolete;
+
+            await _context.SaveChangesAsync();
+
+            _cache = null; // Inwalidacja
+
+            return ServiceResponse<CategoryDTO>.Success(MapToDto(category));
+        }
+
+        public async Task<bool> IsExists(string name, int? id = null)
+        {
+            var cache = await GetOrUpdateCacheAsync();
+            var normalizedName = name?.Trim().ToLower() ?? string.Empty;
+
+            if (cache != null)
             {
-                var category = await _context.Set<Category>()
-                    .FirstOrDefaultAsync(c => c.IdCategory == request.Id);
-
-                if (category == null)
-                    return ServiceResponse<CategoryDTO>.Failure("Nie znaleziono kategorii o podanym ID.", 404);
-
-                // Mapowanie wartości
-                category.Name = request.Name;
-                category.IsObsolete = request.IsObsolete;
-
-                await _context.SaveChangesAsync();
-
-                // Inwalidacja cache
-                _allCategoryLazy = new LazyValue<ServiceResponse<CategoriesDTO>>(FetchCategoriesFromDb);
-
-                return ServiceResponse<CategoryDTO>.Result(new CategoryDTO
-                {
-                    Id = category.IdCategory,
-                    Name = category.Name,
-                    IsObsolete = category.IsObsolete
-                });
+                return cache.Categories.Any(c => (id == null || c.Id != id)
+                                                 && c.Name.ToLower() == normalizedName);
             }
-            catch (Exception ex)
+
+            return await _context.Set<Category>()
+                .AnyAsync(c => (id == null || c.IdCategory != id)
+                                && c.Name.ToLower() == normalizedName);
+        }
+
+        private async Task<List<CategoryDTO>> FetchFromDbInternal()
+        {
+            return await _context.Set<Category>()
+                .AsNoTracking()
+                .Select(c => MapToDto(c))
+                .ToListAsync();
+        }
+
+        private static CategoryDTO MapToDto(Category c) => new CategoryDTO
+        {
+            Id = c.IdCategory,
+            Name = c.Name,
+            IsObsolete = c.IsObsolete
+        };
+
+        public async Task<CategoryDTO?> CategoryExistsByName(string name)
+        {
+            var cache = await GetOrUpdateCacheAsync();
+            var normalizedName = name?.Trim().ToLower() ?? string.Empty;
+
+            if (cache != null)
             {
-                // Tu warto dodać logowanie ex
-                return ServiceResponse<CategoryDTO>.Failure("Błąd serwisu bazy danych podczas aktualizacji.", 500);
+                // Szukamy w pamięci RAM (szybka operacja)
+                return cache.Categories
+                    .FirstOrDefault(c => c.Name.ToLower() == normalizedName);
             }
+
+            // Fallback do bazy danych, jeśli cache jest wyłączony
+            return await _context.Set<Category>()
+                .AsNoTracking()
+                .Where(c => c.Name.ToLower() == normalizedName)
+                .Select(c => MapToDto(c))
+                .FirstOrDefaultAsync();
         }
     }
 }

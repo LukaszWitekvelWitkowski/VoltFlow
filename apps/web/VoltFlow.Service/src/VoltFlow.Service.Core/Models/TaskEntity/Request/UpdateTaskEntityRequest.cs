@@ -1,8 +1,8 @@
 ﻿using VoltFlow.Service.Core.Enums;
 
-namespace VoltFlow.Service.Core.Models.TaskEntity.DTOs
+namespace VoltFlow.Service.Core.Models.TaskEntity.Request
 {
-    public class TaskEntityDTO
+    public class UpdateTaskEntityRequest
     {
         public int IdTask { get; set; }
         public string Description { get; set; } = string.Empty;

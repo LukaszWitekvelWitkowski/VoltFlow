@@ -1,171 +1,198 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Exceptions;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.ElementGroup.DTOs;
 using VoltFlow.Service.Core.Models.ElementGroup.Request;
 using VoltFlow.Service.Core.Pagination;
-using VoltFlow.Service.Core.Tools;
 using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class ElementGroupRepository : IElementGroupRepository
+    public class ElementGroupRepository : BaseRepository, IElementGroupRepository
     {
-        private readonly VoltFlowDbContext _context;
-        private LazyValue<ServiceResponse<ElementGroupsDTO>> _allElementGroupLazy;
+        private ElementGroupsDTO? _cache;
 
-        public ElementGroupRepository(VoltFlowDbContext context)
+        public ElementGroupRepository(VoltFlowDbContext context, IConfiguration configuration) : base(context, configuration)
         {
-            _context = context;
-
-            _allElementGroupLazy = new LazyValue<ServiceResponse<ElementGroupsDTO>>(FetchElementGroupsFromDb);
         }
 
-        public async Task<ServiceResponse<ElementGroupsDTO>> GetElementGroupsQuery()
+        private async Task<ElementGroupsDTO> GetOrUpdateCacheAsync()
         {
-            var response = await _allElementGroupLazy.GetValueAsync();
+            if (!_isCacheEnabled) return null!;
+            if (_cache != null) return _cache;
 
-            return ServiceResponse<ElementGroupsDTO>.Result(response._Data);
-        }
-
-        public async Task<ServiceResponse<ElementGroupDTO>> GetElementGroupByIdQuery(int id)
-        {
-            var response = await _allElementGroupLazy.GetValueAsync();
-
-            if (!response._IsSuccess)
-            {
-                return ServiceResponse<ElementGroupDTO>.Failure(response._Message, response._StatusCode);
-            }
-
-            var elementGroup = response._Data?.ElementGroups.FirstOrDefault(eg => eg.IdElementGroup == id);
-
-            return ServiceResponse<ElementGroupDTO>.Result(elementGroup);
-        }
-
-        public async Task<ServiceResponse<PagedResultDTO<ElementGroupDTO>>> GetElementGroupSearchQuery(string? name, int page, int size)
-        {
-            var response = await _allElementGroupLazy.GetValueAsync();
-
-            if (!response._IsSuccess)
-            {
-                return ServiceResponse<PagedResultDTO<ElementGroupDTO>>.Failure(response._Message, response._StatusCode);
-            }
-
-            var listResponse = ServiceResponse<List<ElementGroupDTO>>.Result(
-                response._Data?.ElementGroups.ToList() ?? new List<ElementGroupDTO>()
-            );
-
-            return PagedHelper.ToPagedResponse(
-                listResponse,
-                name,
-                eg => eg.Name,
-                page,
-                size
-            );
-        }
-
-        private async Task<ServiceResponse<ElementGroupsDTO>> FetchElementGroupsFromDb()
-        {
+            await _lock.WaitAsync();
             try
             {
-                var groupsList = await _context.Set<ElementGroup>()
-                    .AsNoTracking()
-                    .Select(eg => new ElementGroupDTO
+                if (_cache == null)
+                {
+                    var count = await _context.Set<ElementGroup>().CountAsync();
+                    if (count > _maxCacheThreshold)
                     {
-                        IdElementGroup = eg.IdElementGroup,
-                        Name = eg.Name,
-                        IsObsolete = eg.IsObsolete,
-                        CategoryId = eg.CategoryId
-                    })
-                    .ToListAsync();
+                        _isCacheEnabled = false;
+                        return null!;
+                    }
 
-                return ServiceResponse<ElementGroupsDTO>.Result(new ElementGroupsDTO(groupsList));
+                    var data = await FetchFromDbInternal();
+                    _cache = new ElementGroupsDTO(data);
+                }
+                return _cache;
             }
-            catch (Exception ex)
+            finally
             {
-         
-                return ServiceResponse<ElementGroupsDTO>.Failure("Błąd podczas pobierania grup elementów z bazy.", 500);
+                _lock.Release();
             }
         }
 
         public async Task<ServiceResponse<ElementGroupDTO>> AddElementGroup(CreateElementGroupRequest request)
         {
-            try
+            // Sprawdzamy czy kategoria istnieje (szybki AnyAsync)
+            var categoryExists = await _context.Set<Category>()
+                .AnyAsync(c => c.IdCategory == request.CategoryId);
+
+            if (!categoryExists)
+                throw new NotFoundException("Nie znaleziono kategorii o podanym ID.");
+
+            var newGroup = new ElementGroup
             {
-                var category = await _context.Set<Category>()
-                        .FirstAsync(c => c.IdCategory == request.CategoryId);
-    
-                var newGroup = new ElementGroup
-                {
-                    Name = request.Name.Trim(),
-                    CategoryId = request.CategoryId, 
-                    IsObsolete = false,
-                    Category = category
-                };
+                Name = request.Name.Trim(),
+                CategoryId = request.CategoryId,
+                IsObsolete = false
+            };
 
-                _context.Set<ElementGroup>().Add(newGroup);
-                await _context.SaveChangesAsync();
+            _context.Set<ElementGroup>().Add(newGroup);
+            await _context.SaveChangesAsync();
 
-                _allElementGroupLazy = new LazyValue<ServiceResponse<ElementGroupsDTO>>(FetchElementGroupsFromDb);
+            // Inwalidacja cache
+            _cache = null;
 
-                var allGroupsResponse = await _allElementGroupLazy.GetValueAsync();
-                var groupDTO = allGroupsResponse._Data?.ElementGroups
-                    .FirstOrDefault(g => g.IdElementGroup == newGroup.IdElementGroup);
-
-                return ServiceResponse<ElementGroupDTO>.Result(groupDTO!);
-            }
-            catch (Exception ex)
-            {
-                return ServiceResponse<ElementGroupDTO>.Failure("Nie udało się zapisać grupy elementów w bazie danych.", 500);
-            }
+            return ServiceResponse<ElementGroupDTO>.Success(MapToDto(newGroup));
         }
 
         public async Task<ServiceResponse<ElementGroupDTO>> UpdateElementGroup(UpdateElementGroupRequest request)
         {
-            try
-            {
-                var elementGroup = await _context.Set<ElementGroup>()
-                    .FirstOrDefaultAsync(eg => eg.IdElementGroup == request.IdElementGroup);
+            var elementGroup = await _context.Set<ElementGroup>()
+                .FirstOrDefaultAsync(eg => eg.IdElementGroup == request.IdElementGroup);
 
-                if (elementGroup == null)
-                {
-                    return ServiceResponse<ElementGroupDTO>.Failure("Nie znaleziono grupy elementów o podanym ID.", 404);
-                }
+            if (elementGroup == null)
+                throw new NotFoundException("Nie znaleziono grupy elementów.");
 
+            var categoryExists = await _context.Set<Category>()
+                .AnyAsync(c => c.IdCategory == request.CategoryId);
 
-                var category = await _context.Set<Category>()
-                    .FirstOrDefaultAsync(c => c.IdCategory == request.CategoryId);
+            if (!categoryExists)
+                throw new NotFoundException("Nie znaleziono kategorii o podanym ID.");
 
-                if (category == null)
-                {
-                    return ServiceResponse<ElementGroupDTO>.Failure("Nie znaleziono kategorii o podanym ID.", 404);
-                }
+            elementGroup.Name = request.Name.Trim();
+            elementGroup.IsObsolete = request.IsObsolete;
+            elementGroup.CategoryId = request.CategoryId;
 
+            await _context.SaveChangesAsync();
 
-                elementGroup.Name = request.Name.Trim();
-                elementGroup.IsObsolete = request.IsObsolete;
-                elementGroup.CategoryId = request.CategoryId;
-                elementGroup.Category = category; 
-     
-                await _context.SaveChangesAsync();
+            // Inwalidacja cache
+            _cache = null;
 
-      
-                _allElementGroupLazy = new LazyValue<ServiceResponse<ElementGroupsDTO>>(FetchElementGroupsFromDb);
-
-
-                return ServiceResponse<ElementGroupDTO>.Result(new ElementGroupDTO
-                {
-                    IdElementGroup = elementGroup.IdElementGroup,
-                    Name = elementGroup.Name,
-                    IsObsolete = elementGroup.IsObsolete,
-                    CategoryId = elementGroup.CategoryId
-                });
-            }
-            catch (Exception ex)
-            {
-                return ServiceResponse<ElementGroupDTO>.Failure("Wystąpił błąd bazy danych podczas aktualizacji grupy elementów.", 500);
-            }
+            return ServiceResponse<ElementGroupDTO>.Success(MapToDto(elementGroup));
         }
+
+        public async Task<ServiceResponse<ElementGroupDTO>> GetElementGroupByIdQuery(int id)
+        {
+            var cache = await GetOrUpdateCacheAsync();
+            if (cache != null)
+            {
+                var item = cache.ElementGroups.FirstOrDefault(eg => eg.IdElementGroup == id);
+                return ServiceResponse<ElementGroupDTO>.Result(item!);
+            }
+
+            var group = await _context.Set<ElementGroup>()
+                .AsNoTracking()
+                .Where(eg => eg.IdElementGroup == id)
+                .Select(eg => MapToDto(eg))
+                .FirstOrDefaultAsync();
+
+            return ServiceResponse<ElementGroupDTO>.Result(group!);
+        }
+
+        public async Task<ServiceResponse<PagedResultDTO<ElementGroupDTO>>> GetElementGroupSearchQuery(string? name, int page, int size)
+        {
+            var cache = await GetOrUpdateCacheAsync();
+
+            if (cache != null)
+            {
+                // Używamy PagedHelper dla danych z cache
+                var sourceResponse = ServiceResponse<IEnumerable<ElementGroupDTO>>.Result(cache.ElementGroups);
+
+                return PagedHelper.ToPagedResponse(
+                    sourceResponse,
+                    name,
+                    eg => eg.Name,
+                    page,
+                    size
+                );
+            }
+
+            // Fallback do SQL
+            var dbQuery = _context.Set<ElementGroup>().AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var search = name.Trim().ToLower();
+                dbQuery = dbQuery.Where(eg => eg.Name.ToLower().Contains(search));
+            }
+
+            var dbTotal = await dbQuery.CountAsync();
+            var dbItems = await dbQuery
+                .OrderBy(eg => eg.Name)
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Select(eg => MapToDto(eg))
+                .ToListAsync();
+
+            return ServiceResponse<PagedResultDTO<ElementGroupDTO>>.Result(
+                new PagedResultDTO<ElementGroupDTO>(dbItems, dbTotal, page, size));
+        }
+
+        public async Task<ServiceResponse<ElementGroupsDTO>> GetElementGroupsQuery()
+        {
+            var cache = await GetOrUpdateCacheAsync();
+            if (cache != null) return ServiceResponse<ElementGroupsDTO>.Result(cache);
+
+            var data = await FetchFromDbInternal();
+            return ServiceResponse<ElementGroupsDTO>.Result(new ElementGroupsDTO(data));
+        }
+
+        public async Task<bool> IsExists(string name, int? id = null)
+        {
+            var cache = await GetOrUpdateCacheAsync();
+            var normalizedName = name?.Trim().ToLower() ?? string.Empty;
+
+            if (cache != null)
+            {
+                return cache.ElementGroups.Any(eg => (id == null || eg.IdElementGroup != id)
+                                                     && eg.Name.ToLower() == normalizedName);
+            }
+
+            return await _context.Set<ElementGroup>()
+                .AnyAsync(eg => (id == null || eg.IdElementGroup != id)
+                                && eg.Name.ToLower() == normalizedName);
+        }
+
+        private async Task<IEnumerable<ElementGroupDTO>> FetchFromDbInternal()
+        {
+            return await _context.Set<ElementGroup>()
+                .AsNoTracking()
+                .Select(eg => MapToDto(eg))
+                .ToListAsync();
+        }
+
+        private static ElementGroupDTO MapToDto(ElementGroup eg) => new ElementGroupDTO
+        {
+            IdElementGroup = eg.IdElementGroup,
+            Name = eg.Name,
+            IsObsolete = eg.IsObsolete,
+            CategoryId = eg.CategoryId
+        };
     }
 }

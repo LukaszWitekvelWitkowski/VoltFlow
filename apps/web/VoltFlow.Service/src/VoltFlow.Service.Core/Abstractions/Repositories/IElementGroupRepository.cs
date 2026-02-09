@@ -11,5 +11,6 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
         Task<ServiceResponse<PagedResultDTO<ElementGroupDTO>>> GetElementGroupSearchQuery(string? name, int page, int size);
         Task<ServiceResponse<ElementGroupDTO>> AddElementGroup(CreateElementGroupRequest request);
         Task<ServiceResponse<ElementGroupDTO>> UpdateElementGroup(UpdateElementGroupRequest request);
+        Task<bool> IsExists(string name, int? idElementGroup = null);
     }
 }

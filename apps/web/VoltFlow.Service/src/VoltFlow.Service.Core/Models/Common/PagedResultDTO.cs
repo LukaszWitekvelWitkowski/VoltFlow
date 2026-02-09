@@ -2,9 +2,18 @@
 
 namespace VoltFlow.Service.Core.Models.Common
 {
-    public class PagedResultDTO<T>
+    public class PagedResultDTO<T> : PaginationParams
     {
-        public List<T> Relusts { get; set; } = new();
+        public PagedResultDTO(List<T> relusts, int totalCount, int number, int size)
+        {
+            PageNumber = number;
+            PageSize = size;
+            Results = relusts;
+            TotalCount = totalCount;
+
+        }
+
+        public List<T> Results { get; set; } = new();
         public int TotalCount { get; set; }
     }
 

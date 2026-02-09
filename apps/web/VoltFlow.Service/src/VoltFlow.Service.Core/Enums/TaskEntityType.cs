@@ -1,6 +1,6 @@
 ﻿namespace VoltFlow.Service.Core.Enums
 {
-    public enum TaskType : byte
+    public enum TaskEntityType : byte
     {
         Installation = 1,
         Maintenance = 2,
