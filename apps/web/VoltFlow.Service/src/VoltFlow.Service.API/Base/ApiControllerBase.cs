@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Authentication;
+using VoltFlow.Service.Core.Exceptions;
 
 namespace VoltFlow.Service.API.Base
 {
@@ -26,10 +27,27 @@ namespace VoltFlow.Service.API.Base
             {
                 return StatusCode(403, ex.Message);
             }
+            // DODAJEMY TO:
+            catch (ConflictException ex)
+            {
+                // To zwróci status 409
+                return Conflict(ex.Message);
+            }
+            catch (ValidationEntityException ex)
+            {
+                // To zostanie jako 400
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                // To zwróci status 404
+                return NotFound(ex.Message);
+            }
+            // OSTATNIA DESKA RATUNKU:
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
-
+                // Prawdziwe, nieoczekiwane błędy powinny zwracać 500
+                return StatusCode(500, "Wystąpił nieoczekiwany błąd serwera.");
             }
         }
     }

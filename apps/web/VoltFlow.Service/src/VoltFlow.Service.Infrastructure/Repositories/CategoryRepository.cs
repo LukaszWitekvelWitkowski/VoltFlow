@@ -50,6 +50,8 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
         public async Task<ServiceResponse<CategoriesDTO>> GetCategoriesQuery()
         {
+
+
             var cache = await GetOrUpdateCacheAsync();
             if (cache != null) return ServiceResponse<CategoriesDTO>.Result(cache);
 
@@ -63,7 +65,11 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             if (cache != null)
             {
                 var item = cache.Categories.FirstOrDefault(c => c.Id == id);
-                return ServiceResponse<CategoryDTO>.Result(item!);
+
+                // ZAMIAST: return ServiceResponse<CategoryDTO>.Result(item!);
+                if (item == null) throw new NotFoundException($"Kategoria o ID {id} nie istnieje.");
+
+                return ServiceResponse<CategoryDTO>.Result(item);
             }
 
             var category = await _context.Set<Category>()
@@ -72,7 +78,10 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 .Select(c => MapToDto(c))
                 .FirstOrDefaultAsync();
 
-            return ServiceResponse<CategoryDTO>.Result(category!);
+            // TUTAJ RÓWNIEŻ:
+            if (category == null) throw new NotFoundException($"Kategoria o ID {id} nie istnieje.");
+
+            return ServiceResponse<CategoryDTO>.Result(category);
         }
 
         public async Task<ServiceResponse<PagedResultDTO<CategoryDTO>>> GetCategoriesPagedByNameQuery(string? name, int page, int size)

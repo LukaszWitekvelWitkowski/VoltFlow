@@ -1,4 +1,5 @@
-﻿using VoltFlow.Service.Core.Entities;
+﻿using System.Net;
+using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Exceptions;
 using VoltFlow.Service.Core.Models.ElementGroup.Request;
 using VoltFlow.Service.Infrastructure.Repositories;
@@ -184,11 +185,12 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         public async Task GetElementGroupByIdQuery_ShouldReturnNullData_WhenIdIsInvalid()
         {
             // Act
-            var result = await _repository.GetElementGroupByIdQuery(0);
+            var exception = await Assert.ThrowsAsync<NotFoundException>(() =>
+                    _repository.GetElementGroupByIdQuery(0)
+                );
 
             // Assert
-            Assert.True(result._IsSuccess); 
-            Assert.Null(result._Data);
+            Assert.Equal("Grupa elementów o ID 0 nie istnieje.", exception.Message);
         }
     }
 }

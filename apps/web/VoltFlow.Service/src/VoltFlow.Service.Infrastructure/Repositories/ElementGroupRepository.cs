@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Exceptions;
+using VoltFlow.Service.Core.Models.Category.DTOs;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.ElementGroup.DTOs;
 using VoltFlow.Service.Core.Models.ElementGroup.Request;
@@ -104,7 +105,9 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             if (cache != null)
             {
                 var item = cache.ElementGroups.FirstOrDefault(eg => eg.IdElementGroup == id);
-                return ServiceResponse<ElementGroupDTO>.Result(item!);
+                if (item == null) throw new NotFoundException($"Grupa elementów o ID {id} nie istnieje.");
+
+                return ServiceResponse<ElementGroupDTO>.Result(item);
             }
 
             var group = await _context.Set<ElementGroup>()

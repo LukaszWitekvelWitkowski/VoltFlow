@@ -1,10 +1,9 @@
-﻿using VoltFlow.Service.Core.Models.Element;
-
-namespace VoltFlow.Service.Core.Models.Common
+﻿namespace VoltFlow.Service.Core.Models.Common
 {
     public class PagedResultDTO<T> : PaginationParams
     {
-        public PagedResultDTO(List<T> relusts, int totalCount, int number, int size)
+        public PagedResultDTO() { }
+        public PagedResultDTO(IEnumerable<T> relusts, int totalCount, int number, int size)
         {
             PageNumber = number;
             PageSize = size;
@@ -13,7 +12,7 @@ namespace VoltFlow.Service.Core.Models.Common
 
         }
 
-        public List<T> Results { get; set; } = new();
+        public IEnumerable<T> Results { get; set; } = Enumerable.Empty<T>();
         public int TotalCount { get; set; }
     }
 
