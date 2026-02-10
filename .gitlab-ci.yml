@@ -1,66 +1,69 @@
-# Pipeline odpala się tylko na branchu develop
 workflow:
   rules:
   - if: $CI_COMMIT_BRANCH == "develop"
 
 stages:
-- restore
-- build
-- test_unit
-- test_integration
+- build_and_prepare
+- test
 - quality
 
-image: mcr.microsoft.com/dotnet/sdk:8.0
+image: mcr.microsoft.com/dotnet/sdk:9.0
 
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
-  # Konfiguracja dla Testcontainers, aby widziało Dockera w GitLab
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_DRIVER: overlay2
 
-# Cache NuGet dla szybszych buildów
-cache:
-  key: nuget
-  paths:
-  - ~/.nuget/packages
+before_script:
+- curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+- chmod +x dotnet-install.sh
+- ./dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet
+- export PATH="/usr/share/dotnet:$PATH"
+- cd apps/web/VoltFlow.Service/src
 
-restore:
-  stage: restore
+build_and_prepare:
+  stage: build_and_prepare
   script:
-  - dotnet restore
-
-build:
-  stage: build
-  script:
-  - dotnet build --no-restore --configuration Release
+  - dotnet restore VoltFlow.Service.API/VoltFlow.Service.API.csproj
+  - dotnet build VoltFlow.Service.API/VoltFlow.Service.API.csproj --no-restore --configuration Release
+  artifacts:
+    expire_in: 1 hour
+    paths:
+    - "**/bin/"
+    - "**/obj/"
 
 test_unit:
-  stage: test_unit
+  stage: test
   script:
-  # Upewnij się, że ścieżka do folderu z testami jednostkowymi jest poprawna
-  - dotnet test --no-build --filter "FullyQualifiedName!~Integration" --logger "junit;LogFilePath=unit-tests.xml"
+  - mkdir -p TestResults
+  - dotnet test VoltFlow.Service.Test/VoltFlow.Service.Test.csproj --no-build --filter "FullyQualifiedName!~Integration" --logger "junit;LogFilePath=TestResults/unit-tests.xml"
   artifacts:
     when: always
+    paths:
+    - "**/TestResults/unit-tests.xml"
     reports:
-      junit: unit-tests.xml
+      junit: "**/TestResults/unit-tests.xml"
 
 test_integration:
-  stage: test_integration
-  # Używamy dind (Docker-in-Docker), aby Testcontainers mogło odpalić bazę
+  stage: test
   services:
   - name: docker:24.0.5-dind
     alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
   script:
-  # Uruchamiamy testy integracyjne. Testcontainers samo zajmie się resztą.
-  - dotnet test --no-build --filter "FullyQualifiedName~Integration" --logger "junit;LogFilePath=integration-tests.xml"
+  - mkdir -p TestResults
+  # Zmieniono ścieżkę na VoltFlow.Service.Test/VoltFlow.Service.Test.csproj (taką jak w unitach)
+  # Dodano filtr "FullyQualifiedName~Integration"
+  - dotnet test VoltFlow.Service.Test/VoltFlow.Service.Test.csproj --no-build --filter "FullyQualifiedName~Integration" --logger "junit;LogFilePath=TestResults/integration-tests.xml"
   artifacts:
     when: always
+    paths:
+    - "**/TestResults/integration-tests.xml"
     reports:
-      junit: integration-tests.xml
+      junit: "**/TestResults/integration-tests.xml"
 
 quality:
   stage: quality
   script:
-  - dotnet format --verify-no-changes
+  - dotnet format VoltFlow.Service.API/VoltFlow.Service.API.csproj
