@@ -1,0 +1,66 @@
+# Pipeline odpala się tylko na branchu develop
+workflow:
+  rules:
+  - if: $CI_COMMIT_BRANCH == "develop"
+
+stages:
+- restore
+- build
+- test_unit
+- test_integration
+- quality
+
+image: mcr.microsoft.com/dotnet/sdk:8.0
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+  # Konfiguracja dla Testcontainers, aby widziało Dockera w GitLab
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
+
+# Cache NuGet dla szybszych buildów
+cache:
+  key: nuget
+  paths:
+  - ~/.nuget/packages
+
+restore:
+  stage: restore
+  script:
+  - dotnet restore
+
+build:
+  stage: build
+  script:
+  - dotnet build --no-restore --configuration Release
+
+test_unit:
+  stage: test_unit
+  script:
+  # Upewnij się, że ścieżka do folderu z testami jednostkowymi jest poprawna
+  - dotnet test --no-build --filter "FullyQualifiedName!~Integration" --logger "junit;LogFilePath=unit-tests.xml"
+  artifacts:
+    when: always
+    reports:
+      junit: unit-tests.xml
+
+test_integration:
+  stage: test_integration
+  # Używamy dind (Docker-in-Docker), aby Testcontainers mogło odpalić bazę
+  services:
+  - name: docker:24.0.5-dind
+    alias: docker
+  script:
+  # Uruchamiamy testy integracyjne. Testcontainers samo zajmie się resztą.
+  - dotnet test --no-build --filter "FullyQualifiedName~Integration" --logger "junit;LogFilePath=integration-tests.xml"
+  artifacts:
+    when: always
+    reports:
+      junit: integration-tests.xml
+
+quality:
+  stage: quality
+  script:
+  - dotnet format --verify-no-changes
