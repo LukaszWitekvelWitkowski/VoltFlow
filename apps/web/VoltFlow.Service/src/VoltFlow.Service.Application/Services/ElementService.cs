@@ -1,5 +1,4 @@
-﻿using System;
-using VoltFlow.Service.Core.Abstractions.Repositories;
+﻿using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Abstractions.Services;
 using VoltFlow.Service.Core.Exceptions;
 using VoltFlow.Service.Core.Models.Common;
@@ -17,15 +16,15 @@ public class ElementService : IElementService
 
         public async Task<ServiceResponse<ElementDTO>> CreateElement(CreateElementRequest request)
         {
-            // 1. Walidacja biznesowa
+            // 1. Validation
             if (string.IsNullOrWhiteSpace(request.Name))
                 throw new ValidationEntityException("Nazwa elementu nie może być pusta.");
 
-            // 2. Szybkie sprawdzenie duplikatu w bazie
+            // 2. Quick duplicate check in the database
             if (await _elementRepository.IsExists(request.Name))
                 throw new ConflictException("Element o podanej nazwie już istnieje w systemie.");
 
-            // 3. Dodanie rekordu
+            // 3. Save
             var result = await _elementRepository.AddElement(request);
             return ServiceResponse<ElementDTO>.Success(result._Data!);
         }
@@ -35,19 +34,19 @@ public class ElementService : IElementService
             if (string.IsNullOrWhiteSpace(request.Name))
                 throw new ValidationEntityException("Nazwa elementu nie może być pusta.");
 
-            // 1. Pobranie danych do porównania
+            // 1. Downloading data for comparison
             var currentResponse = await _elementRepository.GetElementByIdQuery(request.Id);
             var currentElement = currentResponse._Data ?? throw new NotFoundException("Element nie istnieje.");
 
-            // 2. Sprawdzenie czy nastąpiła jakakolwiek zmiana (Idempotentność)
+            // 2. Checking if any change has occurred (Idempotence)
             if (IsDataUnchanged(currentElement, request))
                 return ServiceResponse<ElementDTO>.Success(currentElement);
 
-            // 3. Sprawdzenie duplikatu nazwy (z wyłączeniem edytowanego ID)
+            // 3. Duplicate name check (excluding edited ID)
             if (await _elementRepository.IsExists(request.Name, request.Id))
                 throw new ConflictException("Element o podanej nazwie już istnieje w systemie.");
 
-            // 4. Aktualizacja
+            // 4. Update
             var updated = await _elementRepository.UpdateElement(request);
             return ServiceResponse<ElementDTO>.Success(updated._Data!);
         }
@@ -55,8 +54,7 @@ public class ElementService : IElementService
         #region Private Helper Methods
 
         private bool IsDataUnchanged(ElementDTO current, UpdateElementRequest request)
-        {
-            // Pamiętaj o Trim() i obsłudze nulli w opisie
+        { 
             return current.Name.Trim().Equals(request.Name.Trim(), StringComparison.OrdinalIgnoreCase)
                    && current.IsObsolete == request.IsObsolete
                    && current.ElementGroupId == request.ElementGroupId

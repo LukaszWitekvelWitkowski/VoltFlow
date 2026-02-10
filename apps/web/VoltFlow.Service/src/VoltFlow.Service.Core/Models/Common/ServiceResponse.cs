@@ -1,10 +1,14 @@
-﻿namespace VoltFlow.Service.Core.Models.Common
+﻿using System.Text.Json.Serialization;
+
+namespace VoltFlow.Service.Core.Models.Common
 {
     public class ServiceResponse<T>
     {
         public T? _Data { get; set; }
         public bool _IsSuccess { get; set; } = true;
         public string _Message { get; set; } = string.Empty;
+
+        [JsonInclude]
         public int _StatusCode { get; private set; }
         public List<string>? _Errors { get; set; } 
 

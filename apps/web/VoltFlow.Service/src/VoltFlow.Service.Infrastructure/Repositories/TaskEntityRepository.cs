@@ -82,12 +82,12 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             if (cache != null)
             {
                 var item = cache.TaskEntities.FirstOrDefault(t => t.IdTask == id);
-                return ServiceResponse<TaskEntityDTO>.Result(item!);
+                return ServiceResponse<TaskEntityDTO>.Result(item);
             }
 
             var entity = await _context.Set<TaskEntity>()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.IdTask == id);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.IdTask == id);
 
             return ServiceResponse<TaskEntityDTO>.Result(MapToDto(entity));
         }
@@ -170,12 +170,12 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        private static TaskEntityDTO MapToDto(TaskEntity? t) => new TaskEntityDTO
+        private static TaskEntityDTO MapToDto(TaskEntity t) => new TaskEntityDTO
         {
-            IdTask = t?.IdTask ?? 0,
-            Description = t?.Description ?? string.Empty,
-            Status = t?.Status ?? WorkItemStatus.ToDo,
-            TypeTask = t?.TypeTask ?? TaskEntityType.Installation
+            IdTask = t.IdTask,
+            Description = t.Description,
+            Status = t.Status,
+            TypeTask = t.TypeTask
         };
     }
 }

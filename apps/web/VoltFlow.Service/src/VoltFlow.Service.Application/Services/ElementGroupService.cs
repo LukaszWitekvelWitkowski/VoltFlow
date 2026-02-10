@@ -15,15 +15,15 @@ namespace VoltFlow.Service.Application.Services
 
         public async Task<ServiceResponse<ElementGroupDTO>> CreateElementGroup(CreateElementGroupRequest request)
         {
-            // 1. Walidacja biznesowa
+            // 1. validation
             if (string.IsNullOrWhiteSpace(request.Name))
                 throw new ValidationEntityException("Nazwa grupy nie może być pusta.");
 
-            // 2. Sprawdzenie duplikatu przez dedykowaną metodę repozytorium
+            // 2. Duplicate checking via dedicated repository method
             if (await _elementGroupRepository.IsExists(request.Name))
                 throw new ConflictException("Grupa o podanej nazwie już istnieje.");
 
-            // 3. Zapis
+            // 3. Save
             var result = await _elementGroupRepository.AddElementGroup(request);
             return ServiceResponse<ElementGroupDTO>.Success(result._Data!);
         }
@@ -33,19 +33,19 @@ namespace VoltFlow.Service.Application.Services
             if (string.IsNullOrWhiteSpace(request.Name))
                 throw new ValidationEntityException("Nazwa grupy nie może być pusta.");
 
-            // 1. Pobranie bieżącego stanu
+            // 1. Getting the current state
             var currentResponse = await _elementGroupRepository.GetElementGroupByIdQuery(request.IdElementGroup);
             var currentGroup = currentResponse._Data ?? throw new NotFoundException("Grupa elementów nie istnieje.");
 
-            // 2. Idempotentność (czy dane faktycznie się zmieniły)
+            // 2. idempotence (whether the data has actually changed)
             if (IsDataUnchanged(currentGroup, request))
                 return ServiceResponse<ElementGroupDTO>.Success(currentGroup);
 
-            // 3. Sprawdzenie duplikatu (wykluczając aktualnie edytowany rekord)
+            // 3. Duplicate check (excluding the currently edited record)
             if (await _elementGroupRepository.IsExists(request.Name, request.IdElementGroup))
                 throw new ConflictException("Grupa o podanej nazwie już istnieje.");
 
-            // 4. Aktualizacja
+            // 4. Update
             var updated = await _elementGroupRepository.UpdateElementGroup(request);
             return ServiceResponse<ElementGroupDTO>.Success(updated._Data!);
         }
