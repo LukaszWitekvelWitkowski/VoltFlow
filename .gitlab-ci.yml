@@ -53,8 +53,6 @@ test_integration:
     DOCKER_TLS_CERTDIR: ""
   script:
   - mkdir -p TestResults
-  # Zmieniono ścieżkę na VoltFlow.Service.Test/VoltFlow.Service.Test.csproj (taką jak w unitach)
-  # Dodano filtr "FullyQualifiedName~Integration"
   - dotnet test VoltFlow.Service.Test/VoltFlow.Service.Test.csproj --no-build --filter "FullyQualifiedName~Integration" --logger "junit;LogFilePath=TestResults/integration-tests.xml"
   artifacts:
     when: always
