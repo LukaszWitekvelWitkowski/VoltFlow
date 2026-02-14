@@ -23,8 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\VoltFlow.Service.API\VoltFlow.Service.API.csproj" />
-    <ProjectReference Include="..\src\VoltFlow.Service.Infrastructure\VoltFlow.Service.Infrastructure.csproj" />
+    <ProjectReference Include="..\VoltFlow.Service.API\VoltFlow.Service.API.csproj" />
+    <ProjectReference Include="..\VoltFlow.Service.Infrastructure\VoltFlow.Service.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
