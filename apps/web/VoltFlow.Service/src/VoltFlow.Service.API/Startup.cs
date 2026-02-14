@@ -1,15 +1,22 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using System.Text;
+using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using VoltFlow.Service.API.Validator;
+using VoltFlow.Service.Application.Commands.Auth;
 using VoltFlow.Service.Application.Queries.Category;
 using VoltFlow.Service.Application.Services;
+using VoltFlow.Service.Core.Abstractions;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Abstractions.Services;
+using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Infrastructure.Data;
 using VoltFlow.Service.Infrastructure.Handlers.Category;
+using VoltFlow.Service.Infrastructure.JWT;
 using VoltFlow.Service.Infrastructure.Repositories;
-
 
 namespace VoltFlow.Service.API
 {
@@ -24,38 +31,45 @@ namespace VoltFlow.Service.API
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // 1. Core & Infrastructure
             services.AddControllers();
-
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
-            typeof(GetCategoriesQuery).Assembly,  
-            typeof(GetCategoriesHandlers).Assembly 
-        ));
-
-            // Upewnij się, że nazwa w appsettings to "DefaultConnection" czy "DataBase"
-            services.AddDbContext<VoltFlowDbContext>(options =>
-                     options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
-
-            services.AddCors(c =>
-            {
-                c.AddPolicy("AllowAngularApp", options =>
-                    options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-            });
-
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
-            // Konfiguracja JWT
-            var secretKey = Configuration["Jwt:Key"];
-            if (string.IsNullOrEmpty(secretKey))
+            // 2. Database (Tylko raz!)
+            services.AddDbContext<VoltFlowDbContext>(options =>
+                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+
+            // 3. Identity
+            services.AddIdentityCore<User>(options =>
             {
-                throw new InvalidOperationException("Jwt:Key is missing in appsettings.json");
-            }
+                options.Password.RequiredLength = 8;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddRoles<IdentityRole<int>>()
+            .AddEntityFrameworkStores<VoltFlowDbContext>()
+            .AddSignInManager<SignInManager<User>>()
+            .AddDefaultTokenProviders();
+
+            // 4. MediatR & Validation Pipeline
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
+                typeof(GetCategoriesQuery).Assembly,
+                typeof(GetCategoriesHandlers).Assembly
+            ));
+
+            services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+            // 5. Authentication & JWT
+            var secretKey = Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is missing");
+            services.Configure<JwtOptions>(Configuration.GetSection("Jwt"));
 
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
+            })
+            .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -71,20 +85,28 @@ namespace VoltFlow.Service.API
 
             services.AddAuthorization();
 
-            // Rejestracja repozytoriów
+            // 6. Dependency Injection - Repositories
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IElementRepository, ElementRepository>();
             services.AddScoped<IElementGroupRepository, ElementGroupRepository>();
             services.AddScoped<ITaskEntityRepository, TaskEntityRepository>();
             services.AddScoped<ICatalogRepository, CatalogRepository>();
 
+            // 7. Dependency Injection - Services
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IElementService, ElementService>();
             services.AddScoped<IElementGroupService, ElementGroupService>();
             services.AddScoped<ITaskEntityService, TaskEntityService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IJWTProvider, JwtProvider>();
 
+            // 8. CORS
+            services.AddCors(c =>
+            {
+                c.AddPolicy("AllowAngularApp", options =>
+                    options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            });
         }
-
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -93,17 +115,18 @@ namespace VoltFlow.Service.API
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "VoltFlow API V1");
                 });
             }
 
+            // Global Error Handling Middleware (Powinieneś go tu mieć!)
+            // app.UseMiddleware<ExceptionHandlingMiddleware>();
+
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
             app.UseCors("AllowAngularApp");
 
-            // developer convenience: redirect root URL to Swagger UI
+            // Automatyczne przekierowanie na Swaggera
             app.Use(async (context, next) =>
             {
                 if (context.Request.Path == "/")
@@ -111,25 +134,16 @@ namespace VoltFlow.Service.API
                     context.Response.Redirect("/swagger");
                     return;
                 }
-
                 await next();
             });
 
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-            });
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-
         }
-
     }
 }

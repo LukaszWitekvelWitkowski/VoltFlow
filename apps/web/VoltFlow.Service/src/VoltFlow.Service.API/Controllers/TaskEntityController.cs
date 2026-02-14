@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VoltFlow.Service.API.Base;
 using VoltFlow.Service.Application.Commands.TaskEntity;
@@ -27,11 +28,13 @@ namespace VoltFlow.Service.API.Controllers
         #endregion
 
         #region POST
+   
         [HttpPost("")]
         public async Task<IActionResult> CreateTaskEntityAsync([FromBody] CreateTaskEntityRequest request) => await HandlerAsync(new CreateTaskEntityCommand(request));
         #endregion
 
         #region PUT
+   
         [HttpPut("")]
         public async Task<IActionResult> UpdateElementAsync([FromBody] UpdateTaskEntityRequest request) => await HandlerAsync(new UpdateTaskEntityCommand(request));
         #endregion
