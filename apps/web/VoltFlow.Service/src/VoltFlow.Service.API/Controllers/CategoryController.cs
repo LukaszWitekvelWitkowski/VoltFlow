@@ -31,7 +31,7 @@ namespace VoltFlow.Service.API.Controllers
 
         #endregion
         #region POST
-        [Authorize(Roles = "Admin")]
+  
         [HttpPost("")]
         public async Task<IActionResult> CreateCategoryAsync([FromBody] CreateCategoryRequest request) => await HandlerAsync(new CreateCategoryCommand(request.Name));
 
@@ -39,7 +39,7 @@ namespace VoltFlow.Service.API.Controllers
 
 
         #region PUT
-        [Authorize(Roles = "Admin")]
+
         [HttpPut("")]
         public async Task<IActionResult> UpdateCategoryAsync([FromBody] UpdateCategoryRequest request) => await HandlerAsync(new UpdateCategoryCommand(request));
         #endregion

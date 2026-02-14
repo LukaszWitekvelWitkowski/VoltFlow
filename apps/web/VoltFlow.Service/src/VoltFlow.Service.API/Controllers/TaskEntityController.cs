@@ -28,13 +28,13 @@ namespace VoltFlow.Service.API.Controllers
         #endregion
 
         #region POST
-        [Authorize(Roles = "Admin")]
+   
         [HttpPost("")]
         public async Task<IActionResult> CreateTaskEntityAsync([FromBody] CreateTaskEntityRequest request) => await HandlerAsync(new CreateTaskEntityCommand(request));
         #endregion
 
         #region PUT
-        [Authorize(Roles = "Admin")]
+   
         [HttpPut("")]
         public async Task<IActionResult> UpdateElementAsync([FromBody] UpdateTaskEntityRequest request) => await HandlerAsync(new UpdateTaskEntityCommand(request));
         #endregion

@@ -32,7 +32,7 @@ namespace VoltFlow.Service.API.Controllers
 
         #endregion
         #region POST
-        [Authorize(Roles = "Admin")]
+    
         [HttpPost("")]
         public async Task<IActionResult> CreateElementAsync([FromBody] CreateElementRequest request) => await HandlerAsync(new CreateElementCommand(request));
 
@@ -40,7 +40,7 @@ namespace VoltFlow.Service.API.Controllers
 
 
         #region PUT
-        [Authorize(Roles = "Admin")]
+   
         [HttpPut("")]
         public async Task<IActionResult> UpdateElementAsync([FromBody] UpdateElementRequest request) => await HandlerAsync(new UpdateElementCommand(request));
         #endregion
