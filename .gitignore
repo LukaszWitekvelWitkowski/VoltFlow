@@ -69,8 +69,7 @@ init_user.sql
 # Database Refresher - Generated Schema
 last_schema.sql
 
-# Ignore all SQL files (useful if you don't want to version seed scripts or dumps)
-*.sql
+
 
 # Configuration files
 appsettings.json
@@ -78,4 +77,4 @@ appsettings.*.json
 
 # If you use User Secrets for local development
 secrets.json
-/apps/web/VoltFlow.Service/src/VoltFlow.Service.API/appsettings.json
+
