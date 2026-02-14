@@ -14,7 +14,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
     {
         private readonly IAuthService _authService;
         private readonly UserManager<User> _userManager;
-        private readonly VoltFlowDbContext _context; // Zakładamy, że mamy dostęp do DbContext, np. przez DI
+        private readonly VoltFlowDbContext _context; 
 
         public RegisterUserHndler(IAuthService authService, UserManager<User> userManager, VoltFlowDbContext context)
         {
@@ -26,47 +26,53 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
         public async Task<ServiceResponse<Result>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
 
-            // Rozpoczynamy transakcję na poziomie bazy danych
+            // Start a transaction at the database level
+
             using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
             try
             {
-                // 1. Sprawdzenie czy użytkownik istnieje
+                // 1. Check if the user exists
                 var existingUser = await _userManager.FindByEmailAsync(request.Email);
                 if (existingUser != null)
                     return ServiceResponse<Result>.Failure("Użytkownik już istnieje.");
 
-                // 2. Tworzenie encji
-                var user = new User { UserName = request.Email,  Name = request.Login, Email = request.Email, RoleId = 1 };
+                // 2. Creating an entity 
+                var user = new User { UserName = request.Email, Name = request.Login, Email = request.Email, RoleId = 1 };
 
-                // 3. Zapis do bazy przez Identity
+                // 3. Saving to the database via Identity 
                 var result = await _userManager.CreateAsync(user, request.Password);
                 if (!result.Succeeded)
                 {
-                    await transaction.RollbackAsync(cancellationToken); // Wycofujemy w razie błędu walidacji Identity
+                    await transaction.RollbackAsync(cancellationToken); // Rollback on Identity validation error 
                     return ServiceResponse<Result>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
 
-              //  await _userManager.AddToRoleAsync(user, "User");
+                // await _userManager.AddToRoleAsync(user, "User"); 
 
-                // 4. Logika dodatkowa (np. wysyłka maila lub zapisanie zadania wysyłki do bazy)
-              /*  var mailResult = await _authService.SendMainVerification(user);
+                // 4. Additional logic (e.g., sending an email or saving the sending task to the database)
+                /* var mailResult = await _authService.SendMainVerification(user);
+
                 if (!mailResult._IsSuccess)
                 {
-                    // Jeśli mail jest krytyczny dla procesu - robimy Rollback.
-                    // Jeśli nie, możemy mimo wszystko zrobić Commit. Tu zakładamy, że jest krytyczny.
-                    await transaction.RollbackAsync(cancellationToken);
-                    return ServiceResponse<Result>.Failure("Błąd podczas inicjacji weryfikacji mailowej.");
+                // If the email is critical to the process, we rollback.
+                // If not, we can still commit. Here we assume it is critical.
+
+                await transaction.RollbackAsync(cancellationToken);
+
+                return ServiceResponse<Result>.Failure("Error initiating email verification.");
+
                 }*/
 
-                // 5. Dopiero tutaj zatwierdzamy wszystko w bazie
+                // 5. Only then do we commit everything to the database
+
                 await transaction.CommitAsync(cancellationToken);
 
                 return ServiceResponse<Result>.Success(new Result(true));
             }
             catch (Exception ex)
             {
-                // W razie nieprzewidzianego błędu (np. bazy danych) wycofujemy zmiany
+                // In the event of an unforeseen error (e.g., database error), we roll back the changes.
                 await transaction.RollbackAsync(cancellationToken);
                 // Log ex...
                 return ServiceResponse<Result>.Failure("Wystąpił nieoczekiwany błąd podczas rejestracji.");

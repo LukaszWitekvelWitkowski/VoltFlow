@@ -50,7 +50,7 @@ public partial class VoltFlowDbContext : DbContext
 
             modelBuilder.Entity<Role>(entity =>
             {
-                entity.ToTable("Role"); // Upewnij się, że nazwa zgadza się z bazą (np. "Role" lub "roles")
+                entity.ToTable("Role"); 
 
                 entity.HasKey(e => e.IdRole).HasName("roles_pkey");
 
@@ -65,7 +65,7 @@ public partial class VoltFlowDbContext : DbContext
                 entity.Property(e => e.IsObsolete)
                     .HasDefaultValue(false);
 
-                // Konfiguracja relacji jeden-do-wielu
+
                 entity.HasMany(r => r.Users)
                     .WithOne(u => u.Role)
                     .HasForeignKey(u => u.RoleId)
@@ -320,14 +320,14 @@ public partial class VoltFlowDbContext : DbContext
 
         modelBuilder.Entity<Doc>(entity =>
         {
-            entity.ToTable("Docs"); // Mapowanie na nazwę tabeli
+            entity.ToTable("Docs"); 
             entity.HasKey(e => e.IdDocs).HasName("pk_docs");
 
             entity.Property(e => e.TotalNet).HasPrecision(12, 2).HasColumnName("TotalNet");
             entity.Property(e => e.TotalVat).HasPrecision(12, 2).HasColumnName("TotalVat");
             entity.Property(e => e.TotalGross).HasPrecision(12, 2).HasColumnName("TotalGross");
             entity.Property(e => e.Description).HasMaxLength(1000);
-            entity.Property(e => e.StatusDoc).HasColumnType("smallint"); // Odpowiednik TinyInt/SmallInt dla Enum
+            entity.Property(e => e.StatusDoc).HasColumnType("smallint"); 
         });
 
         modelBuilder.Entity<DocElement>(entity =>
@@ -339,7 +339,7 @@ public partial class VoltFlowDbContext : DbContext
             entity.Property(e => e.UnitPriceGross).HasPrecision(12, 2);
             entity.Property(e => e.VatRate).HasPrecision(12, 2);
 
-            // Relacja skonfigurowana w Twoim stylu
+      
             entity.HasOne(d => d.Doc)
                 .WithMany(p => p.DocElements)
                 .HasForeignKey(d => d.IdDoc)
@@ -357,7 +357,7 @@ public partial class VoltFlowDbContext : DbContext
             entity.Property(e => e.QuantityRemaining).IsRequired();
         });
 
-        // --- Konfiguracja TransactionLotAllocation ---
+
         modelBuilder.Entity<TransactionLotAllocation>(entity =>
         {
             entity.ToTable("TransactionLotAllocations");
@@ -365,16 +365,16 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.Property(e => e.UnitNetCost).HasPrecision(12, 2);
 
-            // Relacja do PurchaseLot
+ 
             entity.HasOne(d => d.PurchaseLot)
                 .WithMany(p => p.TransactionLotAllocations)
                 .HasForeignKey(d => d.PurchaseLotId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_allocation_purchaselot");
 
-            // Relacja do Transaction
+
             entity.HasOne(d => d.Transaction)
-                .WithMany() // Jeśli Transaction nie ma kolekcji Allocations, zostawiamy puste
+                .WithMany() 
                 .HasForeignKey(d => d.TransactionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_allocation_transaction");

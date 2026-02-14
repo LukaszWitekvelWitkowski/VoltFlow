@@ -51,12 +51,11 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
             // Arrange
             var command = new LoginCommand { Email = "nonexistent@test.com", Password = "AnyPassword" };
 
-            // Najbezpieczniejsza droga dla MockQueryable:
-            var usersList = new List<User>(); // Pusta lista
-            var usersMock = usersList.BuildMock(); // BuildMock() wywołujemy na LISTY (IEnumerable)
 
-            // Ustawiamy UserManager tak, aby zwracał nasz mock
-            // UWAGA: Tu NIE używamy .Object, bo BuildMock() zwraca już gotowy interfejs
+            // Safest way for MockQueryable:
+            var usersList = new List<User>(); // Empty list
+            var usersMock = usersList.BuildMock(); // Call BuildMock() on LISTS (IEnumerable)
+
             _userManagerMock.Setup(x => x.Users).Returns(usersMock);
 
             // Act
@@ -84,20 +83,20 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
                 Role = new Role { Name = "User" }
             };
 
-            // 2. Używamy BuildMock() zamiast ręcznego ustawiania Providerów
-            // To rozwiązuje błąd IAsyncQueryProvider dla .Include() i .FirstOrDefaultAsync()
+            // 2. We use BuildMock() instead of manually setting Providers.
+            // This resolves the IAsyncQueryProvider error for .Include() and .FirstOrDefaultAsync()
             var usersMock = new List<User> { user }.BuildMock();
 
             _userManagerMock.Setup(x => x.Users).Returns(usersMock);
 
-            // 3. Mockujemy wynik sprawdzenia hasła
+            // 3. We mock the password check result.
             _signInManagerMock.Setup(x => x.CheckPasswordSignInAsync(
-                    It.IsAny<User>(),
-                    command.Password,
-                    false))
-                .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
+            It.IsAny<User>(),
+            command.Password,
+            false))
+            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
 
-            // 4. Mockujemy generowanie tokena
+            // 4. We mock token generation
             _jwtProviderMock.Setup(x => x.Generate(It.IsAny<User>()))
                 .Returns("fake-jwt-token");
 
