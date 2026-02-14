@@ -16,7 +16,7 @@ namespace VoltFlow.Service.DataBaseRefresher.Tools
 
             // Look for the solution folder (e.g., start from bin/Debug/net8.0, 3-4 levels up)
             // It's safer to search for the folder by the API project name
-            var apiProjectPath = Path.GetFullPath(Path.Combine(currentDir, "..", "..", "..", "..", "VoltFlow.Service.API"));
+            var apiProjectPath = Path.GetFullPath(Path.Combine(currentDir, "..", "..", "..","..", "VoltFlow.Service.API"));
 
             // If the above doesn't work (depends on your structure), you can provide an absolute path for testing
             // or use a more sophisticated parent folder lookup.

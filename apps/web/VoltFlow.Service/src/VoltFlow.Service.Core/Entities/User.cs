@@ -1,13 +1,11 @@
-﻿using VoltFlow.Service.Core.Enums;
+﻿using Microsoft.AspNetCore.Identity;
+using VoltFlow.Service.Core.Enums;
 
 namespace VoltFlow.Service.Core.Entities
 {
-    public class User
+    public class User : IdentityUser<int>
     {
-        public int IdUser { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string PasswordHash { get; set; } = string.Empty;
         public int TenantId { get; set; }
         public UserStatus Status { get; set; }
 

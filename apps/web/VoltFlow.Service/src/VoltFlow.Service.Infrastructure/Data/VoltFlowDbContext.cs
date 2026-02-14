@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Rewrite;
+using Microsoft.EntityFrameworkCore;
 using VoltFlow.Service.Core.Entities;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VoltFlow.Service.Infrastructure.Data;
 
@@ -44,6 +46,32 @@ public partial class VoltFlowDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
+
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.ToTable("Role"); // Upewnij się, że nazwa zgadza się z bazą (np. "Role" lub "roles")
+
+                entity.HasKey(e => e.IdRole).HasName("roles_pkey");
+
+                entity.Property(e => e.IdRole)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("IdRole");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.IsObsolete)
+                    .HasDefaultValue(false);
+
+                // Konfiguracja relacji jeden-do-wielu
+                entity.HasMany(r => r.Users)
+                    .WithOne(u => u.Role)
+                    .HasForeignKey(u => u.RoleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_users_role");
+            });
         modelBuilder.Entity<Category>(entity =>
         {
             entity.ToTable("Category");
@@ -182,12 +210,6 @@ public partial class VoltFlowDbContext : DbContext
                 .HasConstraintName("fk_jobs_client");
         });
 
-        modelBuilder.Entity<Role>(entity =>
-        {
-            entity.HasKey(e => e.IdRole).HasName("roles_pkey");
-
-            entity.Property(e => e.Name).HasMaxLength(100);
-        });
 
         modelBuilder.Entity<Stock>(entity =>
         {
@@ -272,16 +294,19 @@ public partial class VoltFlowDbContext : DbContext
         {
 
             entity.ToTable("User");
-            entity.HasKey(e => e.IdUser).HasName("users_pkey");
+
+            entity.HasKey(e => e.Id).HasName("users_pkey");
+            entity.Property(e => e.Id).HasColumnName("IdUser");
 
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Name).HasMaxLength(100);
+
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
 
-            entity.HasOne(d => d.Role).WithMany(p => p.Users)
-                .HasForeignKey(d => d.RoleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_users_role");
+            entity.HasOne(d => d.Role)
+                          .WithMany(p => p.Users)
+                          .HasForeignKey(d => d.RoleId)
+                          .HasConstraintName("fk_users_role");
         });
 
         modelBuilder.Entity<Warehouse>(entity =>

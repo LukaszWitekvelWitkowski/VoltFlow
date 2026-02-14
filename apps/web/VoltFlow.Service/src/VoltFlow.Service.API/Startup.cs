@@ -1,13 +1,21 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using VoltFlow.Service.API.Validator;
+using VoltFlow.Service.Application.Commands.Auth;
 using VoltFlow.Service.Application.Queries.Category;
 using VoltFlow.Service.Application.Services;
+using VoltFlow.Service.Core.Abstractions;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Abstractions.Services;
+using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Infrastructure.Data;
 using VoltFlow.Service.Infrastructure.Handlers.Category;
+using VoltFlow.Service.Infrastructure.JWT;
 using VoltFlow.Service.Infrastructure.Repositories;
 
 
@@ -71,6 +79,13 @@ namespace VoltFlow.Service.API
 
             services.AddAuthorization();
 
+            services.AddValidatorsFromAssembly(typeof(RegisterUserCommand).Assembly);
+
+            // Rejestracja Behaviora w potoku MediatR
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+            services.Configure<JwtOptions>(Configuration.GetSection("Jwt"));
+
             // Rejestracja repozytoriów
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IElementRepository, ElementRepository>();
@@ -82,6 +97,23 @@ namespace VoltFlow.Service.API
             services.AddScoped<IElementService, ElementService>();
             services.AddScoped<IElementGroupService, ElementGroupService>();
             services.AddScoped<ITaskEntityService, TaskEntityService>();
+            services.AddScoped<IAuthService, AuthService>();
+
+            services.AddScoped<IJWTProvider, JwtProvider>();
+
+            services.AddDbContext<VoltFlowDbContext>(options =>
+                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+
+
+            services.AddIdentityCore<User>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddRoles<IdentityRole<int>>()
+            .AddEntityFrameworkStores<VoltFlowDbContext>()
+            .AddSignInManager<SignInManager<User>>()
+            .AddDefaultTokenProviders();
 
         }
 

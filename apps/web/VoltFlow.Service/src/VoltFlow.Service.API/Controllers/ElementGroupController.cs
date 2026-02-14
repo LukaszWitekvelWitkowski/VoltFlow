@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VoltFlow.Service.API.Base;
 using VoltFlow.Service.Application.Commands.Element;
@@ -30,6 +31,7 @@ namespace VoltFlow.Service.API.Controllers
 
         #endregion
         #region POST
+        [Authorize(Roles = "Admin")]
         [HttpPost("")]
         public async Task<IActionResult> CreateElementGroupAsync([FromBody] CreateElementGroupRequest request) => await HandlerAsync(new CreateElementGroupCommand(request));
 
@@ -37,6 +39,7 @@ namespace VoltFlow.Service.API.Controllers
 
 
         #region PUT
+        [Authorize(Roles = "Admin")]
         [HttpPut("")]
         public async Task<IActionResult> UpdateElementGroupAsync([FromBody] UpdateElementGroupRequest request) => await HandlerAsync(new UpdateElementGroupCommand(request));
         #endregion
