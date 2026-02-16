@@ -91,6 +91,7 @@ namespace VoltFlow.Service.API
             services.AddScoped<IElementGroupRepository, ElementGroupRepository>();
             services.AddScoped<ITaskEntityRepository, TaskEntityRepository>();
             services.AddScoped<ICatalogRepository, CatalogRepository>();
+            services.AddScoped<IRoleRepository, RoleRespository>();
 
             // 7. Dependency Injection - Services
             services.AddScoped<ICategoryService, CategoryService>();
@@ -99,7 +100,7 @@ namespace VoltFlow.Service.API
             services.AddScoped<ITaskEntityService, TaskEntityService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IJWTProvider, JwtProvider>();
-
+            
             // 8. CORS
             services.AddCors(c =>
             {

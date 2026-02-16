@@ -6,7 +6,6 @@ using VoltFlow.Service.Core.Exceptions;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.Element.DTOs;
 using VoltFlow.Service.Core.Models.Element.Request;
-using VoltFlow.Service.Core.Models.TaskEntity.DTOs;
 using VoltFlow.Service.Core.Pagination;
 using VoltFlow.Service.Infrastructure.Data;
 
