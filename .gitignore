@@ -71,9 +71,6 @@ last_schema.sql
 
 
 
-# Configuration files
-appsettings.json
-appsettings.*.json
 
 # If you use User Secrets for local development
 secrets.json

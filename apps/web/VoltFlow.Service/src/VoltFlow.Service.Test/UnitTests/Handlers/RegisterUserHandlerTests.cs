@@ -6,6 +6,7 @@ using Moq;
 using VoltFlow.Service.Application.Commands.Auth;
 using VoltFlow.Service.Core.Abstractions.Services;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Models.Auth;
 using VoltFlow.Service.Infrastructure.Data;
 using VoltFlow.Service.Infrastructure.Handlers.Auth;
 
@@ -35,7 +36,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
         public async Task Handle_ShouldReturnFailure_WhenUserAlreadyExists()
         {
             // Arrange
-            var command = new RegisterUserCommand
+            var request = new RegisterUserRequest
             {
                 Email = "exists@test.com",
                 Password = "Password123!",
@@ -43,7 +44,9 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
                 Login = "testuser"
             };
 
-            _userManagerMock.Setup(x => x.FindByEmailAsync(command.Email))
+            var command = new RegisterUserCommand(request);
+
+            _userManagerMock.Setup(x => x.FindByEmailAsync(command.RegisterUserRequest.Email))
                 .ReturnsAsync(new User()); // Symulujemy, że user istnieje
 
             var handler = new RegisterUserHndler(_authServiceMock.Object, _userManagerMock.Object, _dbContext);
@@ -60,18 +63,20 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
         public async Task Handle_ShouldReturnSuccess_AndCommitTransaction_WhenDataIsValid()
         {
             // Arrange
-            var command = new RegisterUserCommand
+            var request = new RegisterUserRequest
             {
-                Email = "new@test.com",
+                Email = "exists@test.com",
                 Password = "Password123!",
                 ConfirmPassword = "Password123!",
-                Login = "newuser"
+                Login = "testuser"
             };
 
-            _userManagerMock.Setup(x => x.FindByEmailAsync(command.Email))
+            var command = new RegisterUserCommand(request);
+
+            _userManagerMock.Setup(x => x.FindByEmailAsync(command.RegisterUserRequest.Email))
                 .ReturnsAsync((User)null); // User nie istnieje
 
-            _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<User>(), command.Password))
+            _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<User>(), command.RegisterUserRequest.Password))
                 .ReturnsAsync(IdentityResult.Success);
 
             var handler = new RegisterUserHndler(_authServiceMock.Object, _userManagerMock.Object, _dbContext);
@@ -81,7 +86,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
 
             // Assert
             result._IsSuccess.Should().BeTrue();
-            _userManagerMock.Verify(x => x.CreateAsync(It.Is<User>(u => u.Email == command.Email), command.Password), Times.Once);
+            _userManagerMock.Verify(x => x.CreateAsync(It.Is<User>(u => u.Email == command.RegisterUserRequest.Email), command.RegisterUserRequest.Password), Times.Once);
         }
 
 
@@ -90,15 +95,17 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
         public async Task Handle_ShouldReturnFailure_WhenIdentityReturnsErrors()
         {
             // Arrange
-            var command = new RegisterUserCommand
+            var request = new RegisterUserRequest
             {
-                Email = "error@test.com",
-                Password = "123",
-                ConfirmPassword = "123",
-                Login = "user"
+                Email = "exists@test.com",
+                Password = "Password123!",
+                ConfirmPassword = "Password123!",
+                Login = "testuser"
             };
 
-            _userManagerMock.Setup(x => x.FindByEmailAsync(command.Email)).ReturnsAsync((User)null);
+            var command = new RegisterUserCommand(request);
+
+            _userManagerMock.Setup(x => x.FindByEmailAsync(command.RegisterUserRequest.Email)).ReturnsAsync((User)null);
 
             // ROZWIĄZANIE DLA IdentityErrorDescriber:
             var describer = new IdentityErrorDescriber();

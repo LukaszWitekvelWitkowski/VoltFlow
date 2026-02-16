@@ -44,37 +44,83 @@ public partial class VoltFlowDbContext : DbContext
 
     public virtual DbSet<Warehouse> warehouses { get; set; }
 
+    public virtual DbSet<UserPasswordReset> UserPasswordResets { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
 
+        modelBuilder.Entity<UserPasswordReset>(entity =>
+        {
+            entity.ToTable("User_Password_Resets");
 
-            modelBuilder.Entity<Role>(entity =>
-            {
-                entity.ToTable("Role"); 
+            entity.HasKey(e => e.IdReset).HasName("userpasswordresets_pkey");
 
-                entity.HasKey(e => e.IdRole).HasName("roles_pkey");
+            entity.Property(e => e.IdReset)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("IdReset");
 
-                entity.Property(e => e.IdRole)
-                    .ValueGeneratedOnAdd()
-                    .HasColumnName("IdRole");
+            entity.Property(e => e.UserId).HasColumnName("UserId");
 
-                entity.Property(e => e.Name)
-                    .IsRequired()
-                    .HasMaxLength(100);
+            entity.Property(e => e.TokenHash)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("TokenHash");
 
-                entity.Property(e => e.IsObsolete)
-                    .HasDefaultValue(false);
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("ExpiresAt");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("CreatedAt");
+
+            entity.Property(e => e.UsedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("UsedAt");
+
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(45)
+                .HasColumnName("IpAddress");
 
 
-                entity.HasMany(r => r.Users)
-                    .WithOne(u => u.Role)
-                    .HasForeignKey(u => u.RoleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_users_role");
-            });
+            entity.HasOne(d => d.User)
+                .WithMany() 
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_passwordresets_user");
+        });
+
+
+
+    modelBuilder.Entity<Role>(entity =>
+        {
+            entity.ToTable("Roles"); 
+
+            entity.HasKey(e => e.IdRole).HasName("roles_pkey");
+
+            entity.Property(e => e.IdRole)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("IdRole");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.IsObsolete)
+                .HasDefaultValue(false);
+
+
+            entity.HasMany(r => r.Users)
+                .WithOne(u => u.Role)
+                .HasForeignKey(u => u.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_users_role");
+        });
+
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.ToTable("Category");
+            entity.ToTable("Categories");
             entity.HasKey(e => e.IdCategory).HasName("categories_pkey");
 
             entity.Property(e => e.IdCategory).ValueGeneratedOnAdd();
@@ -84,7 +130,7 @@ public partial class VoltFlowDbContext : DbContext
 
         modelBuilder.Entity<Client>(entity =>
         {
-            entity.ToTable("Client");
+            entity.ToTable("Clients");
             entity.HasKey(e => e.IdClient).HasName("clients_pkey");
 
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -114,7 +160,7 @@ public partial class VoltFlowDbContext : DbContext
         {
             entity.HasKey(e => e.IdElement).HasName("element_pkey");
 
-            entity.ToTable("Element");
+            entity.ToTable("Elements");
 
             entity.Property(e => e.IdElement).ValueGeneratedOnAdd();
 
@@ -131,7 +177,7 @@ public partial class VoltFlowDbContext : DbContext
         {
             entity.HasKey(e => e.IdElementGroup).HasName("elementgroup_pkey");
 
-            entity.ToTable("ElementGroup");
+            entity.ToTable("ElementGroups");
 
             entity.Property(e => e.IdElementGroup).ValueGeneratedOnAdd();
 
@@ -147,7 +193,7 @@ public partial class VoltFlowDbContext : DbContext
         {
             entity.HasKey(e => e.IdErrorLog).HasName("errorlog_pkey");
 
-            entity.ToTable("ErrorLog");
+            entity.ToTable("ErrorLogs");
 
             entity.Property(e => e.IdErrorLog).ValueGeneratedOnAdd();
 
@@ -160,7 +206,7 @@ public partial class VoltFlowDbContext : DbContext
         {
             entity.HasKey(e => e.IdEventJob).HasName("eventjob_pkey");
 
-            entity.ToTable("EventJob");
+            entity.ToTable("EventJobs");
 
             entity.Property(e => e.IdEventJob).ValueGeneratedOnAdd();
 
@@ -176,7 +222,7 @@ public partial class VoltFlowDbContext : DbContext
         {
             entity.HasKey(e => e.IdEventJobLog).HasName("eventjoblog_pkey");
 
-            entity.ToTable("EventJobLog");
+            entity.ToTable("EventJobLogs");
 
             entity.Property(e => e.IdEventJobLog).ValueGeneratedOnAdd();
 
@@ -193,7 +239,7 @@ public partial class VoltFlowDbContext : DbContext
         {
             entity.HasKey(e => e.IdJob).HasName("jobs_pkey");
 
-            entity.ToTable("Job");
+            entity.ToTable("Jobs");
 
             entity.Property(e => e.IdJob).ValueGeneratedOnAdd();
 
@@ -237,7 +283,7 @@ public partial class VoltFlowDbContext : DbContext
             entity.HasKey(e => e.IdTask).HasName("tasks_pkey");
 
 
-            entity.ToTable("TaskEntity");
+            entity.ToTable("TaskEntities");
 
             entity.Property(e => e.IdTask).ValueGeneratedOnAdd();
 
@@ -253,7 +299,7 @@ public partial class VoltFlowDbContext : DbContext
         {
             entity.HasKey(e => e.IdTransaction).HasName("transaction_pkey");
 
-            entity.ToTable("Transaction");
+            entity.ToTable("Transactions");
 
             entity.Property(e => e.Date).HasColumnType("timestamp without time zone");
 
@@ -279,7 +325,7 @@ public partial class VoltFlowDbContext : DbContext
         {
             entity.HasKey(e => e.IdTransactionLog).HasName("transactionlog_pkey");
 
-            entity.ToTable("Transactionlog");
+            entity.ToTable("Transactionlogs");
 
             entity.Property(e => e.Details).HasMaxLength(255);
             entity.Property(e => e.Timestamp).HasColumnType("timestamp without time zone");
@@ -293,7 +339,7 @@ public partial class VoltFlowDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
 
-            entity.ToTable("User");
+            entity.ToTable("Users");
 
             entity.HasKey(e => e.Id).HasName("users_pkey");
             entity.Property(e => e.Id).HasColumnName("IdUser");
@@ -313,7 +359,7 @@ public partial class VoltFlowDbContext : DbContext
         {
             entity.HasKey(e => e.IdWarehouse).HasName("warehouse_pkey");
 
-            entity.ToTable("Warehouse");
+            entity.ToTable("Warehouses");
 
             entity.Property(e => e.Name).HasMaxLength(100);
         });

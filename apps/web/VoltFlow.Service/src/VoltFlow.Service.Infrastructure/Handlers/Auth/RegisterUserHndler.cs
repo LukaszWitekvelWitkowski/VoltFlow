@@ -33,15 +33,15 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
             try
             {
                 // 1. Check if the user exists
-                var existingUser = await _userManager.FindByEmailAsync(request.Email);
+                var existingUser = await _userManager.FindByEmailAsync(request.RegisterUserRequest.Email);
                 if (existingUser != null)
                     return ServiceResponse<Result>.Failure("Użytkownik już istnieje.");
 
                 // 2. Creating an entity 
-                var user = new User { UserName = request.Email, Name = request.Login, Email = request.Email, RoleId = 1 };
+                var user = new User { UserName = request.RegisterUserRequest.Email, Name = request.RegisterUserRequest.Login, Email = request.RegisterUserRequest.Email, RoleId = request.Role };
 
                 // 3. Saving to the database via Identity 
-                var result = await _userManager.CreateAsync(user, request.Password);
+                var result = await _userManager.CreateAsync(user, request.RegisterUserRequest.Password);
                 if (!result.Succeeded)
                 {
                     await transaction.RollbackAsync(cancellationToken); // Rollback on Identity validation error 
