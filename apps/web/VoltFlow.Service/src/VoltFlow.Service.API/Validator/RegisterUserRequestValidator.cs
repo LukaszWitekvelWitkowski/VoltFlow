@@ -1,11 +1,12 @@
 ﻿using FluentValidation;
 using VoltFlow.Service.Application.Commands.Auth;
+using VoltFlow.Service.Core.Models.Auth;
 
 namespace VoltFlow.Service.API.Validator
 {
-    public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
+    public class RegisterUserRequestValidator : AbstractValidator<RegisterUserRequest>
     {
-        public RegisterUserCommandValidator()
+        public RegisterUserRequestValidator()
         {
             RuleFor(x => x.Email)
                 .NotEmpty().EmailAddress().WithMessage("Podaj poprawny adres e-mail.");

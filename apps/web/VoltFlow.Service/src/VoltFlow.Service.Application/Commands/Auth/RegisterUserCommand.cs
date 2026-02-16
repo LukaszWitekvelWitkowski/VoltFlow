@@ -6,10 +6,21 @@ namespace VoltFlow.Service.Application.Commands.Auth
 {
     public class RegisterUserCommand : IRequest<ServiceResponse<Result>>
     {
-        public required string Email { get; set; }
-        public required string Password { get; set; }
-        public required string ConfirmPassword { get; set; }
-        public required string Login { get; set; }
+        public RegisterUserCommand(RegisterUserRequest registerUserRequest)
+        {
+            RegisterUserRequest = registerUserRequest;
+            Role = 1;
 
+        }
+
+        public RegisterUserCommand(RegisterUserRequest registerUserRequest, int role) 
+        {
+            RegisterUserRequest = registerUserRequest;
+            Role = role;
+        }
+
+        public RegisterUserRequest RegisterUserRequest { get; }
+
+        public int Role { get; }
     }
 }

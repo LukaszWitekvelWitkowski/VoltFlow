@@ -2,8 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VoltFlow.Service.API.Base;
 using VoltFlow.Service.Application.Commands.Auth;
-using VoltFlow.Service.Application.Queries.Catalog;
-using VoltFlow.Service.Core.Models.Requests;
+using VoltFlow.Service.Core.Models.Auth;
 
 namespace VoltFlow.Service.API.Controllers
 {
@@ -19,10 +18,13 @@ namespace VoltFlow.Service.API.Controllers
         #endregion
         #region POST
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterUserCommand command) => await HandlerAsync(command);
+        public async Task<IActionResult> Register([FromBody] RegisterUserRequest command) => await HandlerAsync(new RegisterUserCommand(command));
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginCommand command) => await HandlerAsync(command);
+
+        [HttpPost("register-employee")]
+        public async Task<IActionResult> RegisterEmployee([FromBody] RegisterUserRequest command, int role) => await HandlerAsync(new RegisterUserCommand(command, role));
 
         #endregion
         #region PUT
