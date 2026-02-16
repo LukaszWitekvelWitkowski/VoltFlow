@@ -44,34 +44,80 @@ public partial class VoltFlowDbContext : DbContext
 
     public virtual DbSet<Warehouse> warehouses { get; set; }
 
+    public virtual DbSet<UserPasswordReset> UserPasswordResets { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
 
+        modelBuilder.Entity<UserPasswordReset>(entity =>
+        {
+            entity.ToTable("USER_PASSWORD_RESETS");
 
-            modelBuilder.Entity<Role>(entity =>
-            {
-                entity.ToTable("Role"); 
+            entity.HasKey(e => e.IdReset).HasName("userpasswordresets_pkey");
 
-                entity.HasKey(e => e.IdRole).HasName("roles_pkey");
+            entity.Property(e => e.IdReset)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("IdReset");
 
-                entity.Property(e => e.IdRole)
-                    .ValueGeneratedOnAdd()
-                    .HasColumnName("IdRole");
+            entity.Property(e => e.UserId).HasColumnName("UserId");
 
-                entity.Property(e => e.Name)
-                    .IsRequired()
-                    .HasMaxLength(100);
+            entity.Property(e => e.TokenHash)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("TokenHash");
 
-                entity.Property(e => e.IsObsolete)
-                    .HasDefaultValue(false);
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("ExpiresAt");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("CreatedAt");
+
+            entity.Property(e => e.UsedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("UsedAt");
+
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(45)
+                .HasColumnName("IpAddress");
 
 
-                entity.HasMany(r => r.Users)
-                    .WithOne(u => u.Role)
-                    .HasForeignKey(u => u.RoleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_users_role");
-            });
+            entity.HasOne(d => d.User)
+                .WithMany() 
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_passwordresets_user");
+        });
+
+
+
+    modelBuilder.Entity<Role>(entity =>
+        {
+            entity.ToTable("Role"); 
+
+            entity.HasKey(e => e.IdRole).HasName("roles_pkey");
+
+            entity.Property(e => e.IdRole)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("IdRole");
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.IsObsolete)
+                .HasDefaultValue(false);
+
+
+            entity.HasMany(r => r.Users)
+                .WithOne(u => u.Role)
+                .HasForeignKey(u => u.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_users_role");
+        });
+
         modelBuilder.Entity<Category>(entity =>
         {
             entity.ToTable("Category");
