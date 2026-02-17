@@ -1,10 +1,10 @@
-﻿using System.Text;
-using FluentValidation;
+﻿using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using VoltFlow.Service.API.Validator;
 using VoltFlow.Service.Application.Commands.Auth;
 using VoltFlow.Service.Application.Queries.Category;
@@ -13,6 +13,7 @@ using VoltFlow.Service.Core.Abstractions;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Abstractions.Services;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Models.email;
 using VoltFlow.Service.Infrastructure.Data;
 using VoltFlow.Service.Infrastructure.Handlers.Category;
 using VoltFlow.Service.Infrastructure.JWT;
@@ -63,6 +64,8 @@ namespace VoltFlow.Service.API
             // 5. Authentication & JWT
             var secretKey = Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is missing");
             services.Configure<JwtOptions>(Configuration.GetSection("Jwt"));
+
+            services.Configure<SmtpSettings>(Configuration.GetSection("SmtpSettings"));
 
             services.AddAuthentication(options =>
             {
