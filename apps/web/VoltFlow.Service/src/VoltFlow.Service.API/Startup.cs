@@ -105,6 +105,7 @@ namespace VoltFlow.Service.API
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IEmailRepository, EmailRepository>();
 
             services.AddScoped<IJWTProvider, JwtProvider>();
             

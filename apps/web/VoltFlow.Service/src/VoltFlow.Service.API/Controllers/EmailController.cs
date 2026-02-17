@@ -12,6 +12,6 @@ namespace VoltFlow.Service.API.Controllers
         }
 
         [HttpPost("send-test-email")]
-        public async Task<IActionResult> SendTestEmail([FromBody] SendWelcomeEmailCommand send) => await HandlerAsync(send);
+        public async Task<IActionResult> SendTestEmail([FromBody] SendOverduePaymentCommand send) => await HandlerAsync(send);
     }
 }

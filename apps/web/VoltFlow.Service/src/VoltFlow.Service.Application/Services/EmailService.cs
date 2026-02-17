@@ -3,25 +3,24 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Polly;
+using Polly.Retry;
 using VoltFlow.Service.Core.Abstractions.Services;
 using VoltFlow.Service.Core.Models.email;
-using Polly; // Nowość
-using Polly.Retry;
 
 namespace VoltFlow.Service.Application.Services
 {
     public class EmailService : IEmailService
     {
         private readonly SmtpSettings _settings;
-        private readonly ILogger<EmailService> _logger; // Logger
-        private readonly AsyncRetryPolicy _retryPolicy; // Polityka Polly
+        private readonly ILogger<EmailService> _logger;
+        private readonly AsyncRetryPolicy _retryPolicy; 
 
         public EmailService(IOptions<SmtpSettings> settings, ILogger<EmailService> logger)
         {
             _settings = settings.Value;
             _logger = logger;
 
-            // Definiujemy politykę: 3 próby, wykładniczy czas oczekiwania
             _retryPolicy = Policy
                 .Handle<Exception>()
                 .WaitAndRetryAsync(3, retryAttempt =>
@@ -64,10 +63,10 @@ namespace VoltFlow.Service.Application.Services
             }
             catch (Exception ex)
             {
-                // To wykona się dopiero, gdy Polly podda się po 3 próbach
                 _logger.LogCritical(ex, "KRYTYCZNY BŁĄD: Nie udało się wysłać maila do {To} po wszystkich próbach.", to);
                 return false;
             }
         }
+
     }
 }

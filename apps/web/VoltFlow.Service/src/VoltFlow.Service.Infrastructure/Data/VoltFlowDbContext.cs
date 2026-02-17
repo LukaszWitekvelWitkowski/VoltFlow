@@ -46,8 +46,29 @@ public partial class VoltFlowDbContext : DbContext
 
     public virtual DbSet<UserPasswordReset> UserPasswordResets { get; set; }
 
+    public virtual DbSet<EmailTemplate> EmailTemplates { get; set; }
+    public virtual DbSet<EmailLog> EmailLogs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<EmailTemplate>(entity =>
+        {
+            entity.ToTable("Email_Templates");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EmailType).IsRequired();
+            entity.Property(e => e.Subject).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.BodyHtml).IsRequired();
+            entity.HasIndex(e => e.EmailType).IsUnique();
+        });
+
+        modelBuilder.Entity<EmailLog>(entity =>
+        {
+            entity.ToTable("Email_Logs");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.To).HasMaxLength(150).IsRequired();
+            entity.Property(e => e.SentDate).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.ErrorMessage).HasMaxLength(1000);
+        });
 
         modelBuilder.Entity<UserPasswordReset>(entity =>
         {
