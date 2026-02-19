@@ -2,7 +2,13 @@
 {
     public class VerifyEmailRequest
     {
-        public required string Email { get; set; }
-        public required string Token { get; set; }
+        public VerifyEmailRequest(string email, string token)
+        {
+            Email = email;
+            Token = token;
+        }
+
+        public  string Email { get;  }
+        public  string Token { get;  }
     }
 }
