@@ -5,13 +5,12 @@ using VoltFlow.Service.Core.Models.Common;
 
 namespace VoltFlow.Service.Application.Commands.Auth
 {
-    public record CompleteClientOnboardingCommand : IRequest<ServiceResponse<Result>>
+    public class VerifyEmailCommand : IRequest<ServiceResponse<Result>>
     {
-        public CompleteClientOnboardingCommand(CompleteOnboardingRequest request)
+        public VerifyEmailCommand(VerifyEmailRequest request)
         {
             this.request = request;
         }
-
-        public CompleteOnboardingRequest request { get; }
+        public VerifyEmailRequest request { get; }
     }
 }

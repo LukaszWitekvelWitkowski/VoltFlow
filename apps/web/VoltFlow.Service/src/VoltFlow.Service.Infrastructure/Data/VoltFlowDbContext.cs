@@ -87,7 +87,7 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.Property(e => e.Type)
                 .IsRequired()
-                .HasColumnName("TokenType"); // Zmapowane na Enum w kodzie
+                .HasColumnName("TokenType"); 
 
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("timestamp with time zone")
@@ -97,6 +97,10 @@ public partial class VoltFlowDbContext : DbContext
             entity.Property(e => e.ExpiresAt)
                 .HasColumnType("timestamp with time zone")
                 .HasColumnName("ExpiresAt");
+
+            entity.Property(e => e.UsedAt)
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("UsedAt");
 
             entity.Property(e => e.IsUsed)
                 .HasDefaultValue(false)

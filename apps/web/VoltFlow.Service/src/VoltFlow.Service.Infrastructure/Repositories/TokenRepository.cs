@@ -16,22 +16,31 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         public async Task AddAsync(VerificationToken token, CancellationToken ct)
         {
             await _context.VerificationTokens.AddAsync(token, ct);
+            await _context.SaveChangesAsync(ct);
         }
 
-        public async Task<VerificationToken?> GetActiveTokenAsync(string hashedToken, int userId, CancellationToken ct)
+
+        public async Task<VerificationToken?> GetActiveTokenAsync(int userId, string hashedToken, TokenType type, CancellationToken ct)
         {
-            return await _context.Set<VerificationToken>()
-                .Where(t => t.TokenHash == hashedToken)
-                .Where(t => t.UserId == userId)
-                .Where(t => t.Type == TokenType.EmailConfirmation) 
-                .Where(t => t.ExpiresAt > DateTime.UtcNow)       
-                .Where(t => !t.IsUsed)                            
-                .FirstOrDefaultAsync(ct);                       
+            return await _context.VerificationTokens
+                         .FirstOrDefaultAsync(t =>
+                             t.UserId == userId &&
+                             t.TokenHash == hashedToken &&
+                             t.Type == type &&
+                             !t.IsUsed &&
+                             t.ExpiresAt > DateTime.UtcNow,
+                         ct);
         }
 
         public void Remove(VerificationToken token)
         {
             _context.VerificationTokens.Remove(token);
+        }
+
+        public async Task UpdateAsync(VerificationToken token, CancellationToken ct)
+        {
+            _context.VerificationTokens.Update(token);
+            await _context.SaveChangesAsync(ct);
         }
     }
 }
