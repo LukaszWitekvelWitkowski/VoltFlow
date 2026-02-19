@@ -9,5 +9,6 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
 
         Task<User?> GetByEmailAsync(string email);
         Task UpdateAsync(User user, string? usedTokenHash = null);
+        Task<User?> GetByIdAsync(int userId, CancellationToken ct);
     }
 }

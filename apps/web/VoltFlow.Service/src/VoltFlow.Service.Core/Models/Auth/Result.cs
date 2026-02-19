@@ -2,11 +2,16 @@
 {
     public class Result
     {
-        public bool Success { get;}
+        public bool Success { get; }
 
-        public Result(bool success)
+        protected Result(bool success)
         {
             Success = success;
-        }   
+        }
+
+        public static Result isSucces() => new Result(true);
+
+        public Result isFailure() => new Result(false);
+
     }
 }

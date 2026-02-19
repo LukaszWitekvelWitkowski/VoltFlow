@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Models.Catalog.DTOs; // Zakładam taką przestrzeń nazw
 using VoltFlow.Service.Core.Models.Common;
-using VoltFlow.Service.Test.Integration;
 using VoltFlow.Service.Test.Integration.IntegrationTest;
 
 namespace VoltFlow.Service.Test.Integration.Controllers
@@ -19,33 +19,33 @@ namespace VoltFlow.Service.Test.Integration.Controllers
         [Fact]
         public async Task GetCatalogSearch_ShouldReturnEverything_WhenNoFiltersApplied()
         {
-            // Arrange - Musimy stworzyć pełną ścieżkę, by katalog miał co wyświetlić
-            var category = new Category { Name = "Industrial" };
-            DbContext.categories.Add(category);
-            await DbContext.SaveChangesAsync();
+                // Arrange
+                var category = new Category { Name = "Industrial" };
+                DbContext.categories.Add(category);
+                await DbContext.SaveChangesAsync();
 
-            var group = new ElementGroup { Name = "Sensors", CategoryId = category.IdCategory };
-            DbContext.elementgroups.Add(group);
-            await DbContext.SaveChangesAsync();
+                var group = new ElementGroup { Name = "Sensors", CategoryId = category.IdCategory };
+                DbContext.elementgroups.Add(group);
+                await DbContext.SaveChangesAsync();
 
-            DbContext.elements.AddRange(
-                new Element { Name = "Pressure Sensor", ElementGroupId = group.IdElementGroup },
-                new Element { Name = "Flow Meter", ElementGroupId = group.IdElementGroup }
-            );
-            await DbContext.SaveChangesAsync();
+                DbContext.elements.AddRange(
+                    new Element { Name = "Pressure Sensor", ElementGroupId = group.IdElementGroup },
+                    new Element { Name = "Flow Meter", ElementGroupId = group.IdElementGroup }
+                );
+                await DbContext.SaveChangesAsync();
 
-            // Act
-            // Zakładam, że CatalogSearchRequest ma parametry Name, Number (Page) i Size
-            var response = await Client.GetAsync("/api/catalog/search?name=&number=1&size=10");
+                // Act
+                var response = await Client.GetAsync("/api/catalog/search?name=&number=1&size=10");
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<PagedResultDTO<ElementTreeDTO>>>();
+                // Assert
+                response.EnsureSuccessStatusCode();
+                var result = await response.Content.ReadFromJsonAsync<ServiceResponse<PagedResultDTO<ElementTreeDTO>>>();
 
-            Assert.NotNull(result?._Data);
-            Assert.NotEmpty(result._Data.Results);
-            // Sprawdzamy, czy nasze elementy są w wynikach wyszukiwania
-            Assert.Contains(result._Data.Results, x => x.Name == "Pressure Sensor");
+                Assert.NotNull(result?._Data);
+                Assert.NotEmpty(result._Data.Results);
+
+                Assert.Contains(result._Data.Results, x => x.Name == "Pressure Sensor");
+
         }
 
         [Fact]
@@ -94,7 +94,7 @@ namespace VoltFlow.Service.Test.Integration.Controllers
             );
             await DbContext.SaveChangesAsync();
 
-            // 2. Act - Szukamy tylko rzeczy z kategorii "Mechanical"
+            // 2. Act 
             var response = await Client.GetAsync("/api/catalog/search?CategoryName=Mechanical&Number=1&Size=10");
 
             // 3. Assert
@@ -125,7 +125,7 @@ namespace VoltFlow.Service.Test.Integration.Controllers
             );
             await DbContext.SaveChangesAsync();
 
-            // Act - Szukamy tylko w grupie "Drills"
+            // Act
             var response = await Client.GetAsync("/api/catalog/search?ElementGroupName=Drills&Number=1&Size=10");
 
             // Assert

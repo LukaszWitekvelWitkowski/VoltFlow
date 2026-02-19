@@ -2,8 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VoltFlow.Service.Application.Commands.Auth;
-using VoltFlow.Service.Core.Abstractions;
-using VoltFlow.Service.Core.Abstractions.Services;
+using VoltFlow.Service.Core.Abstractions.Tools;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Models.Auth;
 using VoltFlow.Service.Core.Models.Common;
@@ -12,14 +11,12 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
 {
     public class LoginHandler : IRequestHandler<LoginCommand,ServiceResponse<TokenResponse>>
     {
-        private readonly IAuthService _authService;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IJWTProvider _jwtProvider;
 
-        public LoginHandler(IAuthService authService, UserManager<User> userManager, SignInManager<User> signInManager, IJWTProvider jwtProvider)
+        public LoginHandler(UserManager<User> userManager, SignInManager<User> signInManager, IJWTProvider jwtProvider)
         {
-            _authService = authService;
             _userManager = userManager;
             _signInManager = signInManager;
             _jwtProvider = jwtProvider;

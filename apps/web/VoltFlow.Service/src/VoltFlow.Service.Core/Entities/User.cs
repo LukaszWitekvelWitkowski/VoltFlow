@@ -12,6 +12,8 @@ namespace VoltFlow.Service.Core.Entities
         // Relacje
         public int RoleId { get; set; }
         public Role Role { get; set; } = null!;
+        public bool IsEmailVerified { get; set; }
+        public bool IsSendEmailVeryfied { get; set; }
         public ICollection<UserPasswordReset> Users { get; set; } = new List<UserPasswordReset>();
 
     }

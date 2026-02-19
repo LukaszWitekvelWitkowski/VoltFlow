@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
 using VoltFlow.Service.Application.Commands.Auth;
-using VoltFlow.Service.Core.Abstractions.Services;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Models.Auth;
 using VoltFlow.Service.Infrastructure.Data;
@@ -14,14 +13,11 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
 {
     public class RegisterUserHandlerTests
     {
-        private readonly Mock<IAuthService> _authServiceMock;
         private readonly Mock<UserManager<User>> _userManagerMock;
         private readonly VoltFlowDbContext _dbContext;
 
         public RegisterUserHandlerTests()
         {
-            _authServiceMock = new Mock<IAuthService>();
-
             var store = new Mock<IUserStore<User>>();
             _userManagerMock = new Mock<UserManager<User>>(store.Object, null, null, null, null, null, null, null, null);
 
@@ -49,7 +45,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
             _userManagerMock.Setup(x => x.FindByEmailAsync(command.RegisterUserRequest.Email))
                 .ReturnsAsync(new User()); // Symulujemy, że user istnieje
 
-            var handler = new RegisterUserHndler(_authServiceMock.Object, _userManagerMock.Object, _dbContext);
+            var handler = new RegisterUserHndler(_userManagerMock.Object, _dbContext);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -79,7 +75,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
             _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<User>(), command.RegisterUserRequest.Password))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var handler = new RegisterUserHndler(_authServiceMock.Object, _userManagerMock.Object, _dbContext);
+            var handler = new RegisterUserHndler(_userManagerMock.Object, _dbContext);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -114,7 +110,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
             _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
                 .ReturnsAsync(IdentityResult.Failed(identityError));
 
-            var handler = new RegisterUserHndler(_authServiceMock.Object, _userManagerMock.Object, _dbContext);
+            var handler = new RegisterUserHndler(_userManagerMock.Object, _dbContext);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);

@@ -12,13 +12,11 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
 {
     public class RegisterUserHndler : IRequestHandler<RegisterUserCommand, ServiceResponse<Result>>
     {
-        private readonly IAuthService _authService;
         private readonly UserManager<User> _userManager;
         private readonly VoltFlowDbContext _context; 
 
-        public RegisterUserHndler(IAuthService authService, UserManager<User> userManager, VoltFlowDbContext context)
+        public RegisterUserHndler(UserManager<User> userManager, VoltFlowDbContext context)
         {
-            _authService = authService;
             _userManager = userManager;
             _context = context;
         }
@@ -68,7 +66,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
 
                 await transaction.CommitAsync(cancellationToken);
 
-                return ServiceResponse<Result>.Success(new Result(true));
+                return ServiceResponse<Result>.Success(Result.isSucces());
             }
             catch (Exception ex)
             {

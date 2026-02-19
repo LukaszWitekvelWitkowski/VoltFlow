@@ -3,7 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using VoltFlow.Service.Core.Abstractions;
+using VoltFlow.Service.Core.Abstractions.Tools;
 using VoltFlow.Service.Core.Entities;
 
 namespace VoltFlow.Service.Infrastructure.JWT

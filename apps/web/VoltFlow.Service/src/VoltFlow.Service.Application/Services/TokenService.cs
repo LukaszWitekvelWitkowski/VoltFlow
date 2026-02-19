@@ -1,32 +1,33 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using VoltFlow.Service.Core.Abstractions.Services;
-using VoltFlow.Service.Core.Entities;
 
 namespace VoltFlow.Service.Application.Services
 {
     public class TokenService : ITokenService
     {
-        public string GeneratePasswordResetToken(User user)
+        public string GenerateToken()
         {
-            // Generate 32 random bytes
             var randomNumber = new byte[32];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
 
-            // Convert to a secure Base64 string (remove special characters for URLs)
+            // Używamy Base64Url (bez +, / i =), aby token był bezpieczny w linkach URL
             return Convert.ToBase64String(randomNumber)
-            .Replace("+", "-")
-            .Replace("/", "_")
-            .Replace("=", "");
+                .Replace("+", "-")
+                .Replace("/", "_")
+                .Replace("=", "");
         }
 
         public string HashToken(string token)
         {
-            // Always store the HASH token in the database, not the raw token.
-            // If the database is leaked, the hacker won't reset users' passwords.
+            if (string.IsNullOrWhiteSpace(token))
+                throw new ArgumentException("Token cannot be empty", nameof(token));
+
             using var sha256 = SHA256.Create();
             var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+
+            // Zwracamy czysty Hex string
             return BitConverter.ToString(hashedBytes).Replace("-", "").ToLower();
         }
     }

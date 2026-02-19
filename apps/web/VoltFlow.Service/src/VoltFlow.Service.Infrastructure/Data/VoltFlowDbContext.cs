@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Rewrite;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VoltFlow.Service.Core.Entities;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VoltFlow.Service.Infrastructure.Data;
 
@@ -46,8 +45,79 @@ public partial class VoltFlowDbContext : DbContext
 
     public virtual DbSet<UserPasswordReset> UserPasswordResets { get; set; }
 
+    public virtual DbSet<EmailTemplate> EmailTemplates { get; set; }
+    public virtual DbSet<EmailLog> EmailLogs { get; set; }
+
+    public virtual DbSet<VerificationToken> VerificationTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<EmailTemplate>(entity =>
+        {
+            entity.ToTable("Email_Templates");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EmailType).IsRequired();
+            entity.Property(e => e.Subject).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.BodyHtml).IsRequired();
+            entity.HasIndex(e => e.EmailType).IsUnique();
+        });
+
+        modelBuilder.Entity<EmailLog>(entity =>
+        {
+            entity.ToTable("Email_Logs");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.To).HasMaxLength(150).IsRequired();
+            entity.Property(e => e.ErrorMessage).HasMaxLength(1000);
+            entity.Property(e => e.SentDate).HasColumnType("timestamp with time zone");
+        });
+
+        modelBuilder.Entity<VerificationToken>(entity =>
+        {
+            entity.ToTable("Verification_Tokens");
+
+            entity.HasKey(e => e.Id).HasName("verificationtokens_pkey");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.TokenHash)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("TokenHash");
+
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasColumnName("TokenType"); 
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp with time zone")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("CreatedAt");
+
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("ExpiresAt");
+
+            entity.Property(e => e.UsedAt)
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("UsedAt");
+
+            entity.Property(e => e.IsUsed)
+                .HasDefaultValue(false)
+                .HasColumnName("IsUsed");
+
+            entity.Property(e => e.UserId).HasColumnName("UserId");
+
+        
+            entity.HasOne(d => d.User)
+                .WithMany() 
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade) 
+                .HasConstraintName("fk_verificationtokens_user");
+
+            entity.HasIndex(e => e.TokenHash).IsUnique().HasDatabaseName("idx_tokens_hash");
+            entity.HasIndex(e => e.UserId).HasDatabaseName("idx_tokens_user_id");
+        });
 
         modelBuilder.Entity<UserPasswordReset>(entity =>
         {
@@ -67,16 +137,16 @@ public partial class VoltFlowDbContext : DbContext
                 .HasColumnName("TokenHash");
 
             entity.Property(e => e.ExpiresAt)
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("ExpiresAt");
 
             entity.Property(e => e.CreatedAt)
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("CreatedAt");
 
             entity.Property(e => e.UsedAt)
-                .HasColumnType("timestamp without time zone")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("UsedAt");
 
             entity.Property(e => e.IpAddress)
@@ -199,7 +269,7 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.Property(e => e.Message).HasMaxLength(500);
             entity.Property(e => e.Name).HasMaxLength(255);
-            entity.Property(e => e.Timestamp).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Timestamp).HasColumnType("timestamp with time zone");
         });
 
         modelBuilder.Entity<EventJob>(entity =>
@@ -227,7 +297,7 @@ public partial class VoltFlowDbContext : DbContext
             entity.Property(e => e.IdEventJobLog).ValueGeneratedOnAdd();
 
             entity.Property(e => e.Status).HasMaxLength(50);
-            entity.Property(e => e.Timestamp).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Timestamp).HasColumnType("timestamp with time zone");
 
             entity.HasOne(d => d.EventJob).WithMany(p => p.Logs)
                 .HasForeignKey(d => d.EventJobId)
@@ -243,7 +313,7 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.Property(e => e.IdJob).ValueGeneratedOnAdd();
 
-            entity.Property(e => e.Date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Date).HasColumnType("timestamp with time zone");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Jobs)
                 .HasForeignKey(d => d.AddressId)
@@ -265,7 +335,7 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.Property(e => e.IdStock).ValueGeneratedOnAdd();
 
-            entity.Property(e => e.LastUpdated).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.LastUpdated).HasColumnType("timestamp with time zone");
 
             entity.HasOne(d => d.Element).WithMany(p => p.Stocks)
                 .HasForeignKey(d => d.ElementId)
@@ -301,7 +371,7 @@ public partial class VoltFlowDbContext : DbContext
 
             entity.ToTable("Transactions");
 
-            entity.Property(e => e.Date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Date).HasColumnType("timestamp with time zone");
 
             entity.HasOne(d => d.Job).WithMany(p => p.Transactions)
                 .HasForeignKey(d => d.JobId)
@@ -328,7 +398,7 @@ public partial class VoltFlowDbContext : DbContext
             entity.ToTable("Transactionlogs");
 
             entity.Property(e => e.Details).HasMaxLength(255);
-            entity.Property(e => e.Timestamp).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Timestamp).HasColumnType("timestamp with time zone");
 
             entity.HasOne(d => d.EntityTransaction).WithMany(p => p.TransactionLogs)
                 .HasForeignKey(d => d.TransactionId)
@@ -426,8 +496,27 @@ public partial class VoltFlowDbContext : DbContext
                 .HasConstraintName("fk_allocation_transaction");
         });
 
+        ConvertDateTimeToUtc(modelBuilder);
+
         OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+    void ConvertDateTimeToUtc(ModelBuilder modelBuilder)
+    {
+        var utcConverter = new ValueConverter<DateTime, DateTime>(
+            v => v.Kind == DateTimeKind.Utc ? v : DateTime.SpecifyKind(v, DateTimeKind.Utc),
+            v => v);
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+                {
+                    property.SetValueConverter(utcConverter);
+                }
+            }
+        }
+    }
 }

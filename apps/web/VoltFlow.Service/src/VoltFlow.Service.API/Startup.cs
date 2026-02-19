@@ -1,22 +1,24 @@
-﻿using System.Text;
-using FluentValidation;
+﻿using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using VoltFlow.Service.API.Validator;
 using VoltFlow.Service.Application.Commands.Auth;
 using VoltFlow.Service.Application.Queries.Category;
 using VoltFlow.Service.Application.Services;
-using VoltFlow.Service.Core.Abstractions;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Abstractions.Services;
+using VoltFlow.Service.Core.Abstractions.Tools;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Models.email;
 using VoltFlow.Service.Infrastructure.Data;
 using VoltFlow.Service.Infrastructure.Handlers.Category;
 using VoltFlow.Service.Infrastructure.JWT;
 using VoltFlow.Service.Infrastructure.Repositories;
+using VoltFlow.Service.Infrastructure.Tools;
 
 namespace VoltFlow.Service.API
 {
@@ -64,6 +66,8 @@ namespace VoltFlow.Service.API
             var secretKey = Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is missing");
             services.Configure<JwtOptions>(Configuration.GetSection("Jwt"));
 
+            services.Configure<SmtpSettings>(Configuration.GetSection("SmtpSettings"));
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -93,6 +97,8 @@ namespace VoltFlow.Service.API
             services.AddScoped<ICatalogRepository, CatalogRepository>();
             services.AddScoped<IRoleRepository, RoleRespository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IEmailRepository, EmailRepository>();
+            services.AddScoped<ITokenRepository, TokenRepository>();
 
             // 7. Dependency Injection - Services
             services.AddScoped<ICategoryService, CategoryService>();
@@ -102,9 +108,13 @@ namespace VoltFlow.Service.API
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ITokenService, TokenService>();
+     
+
 
             services.AddScoped<IJWTProvider, JwtProvider>();
-            
+            services.AddScoped<IEmailSender, EmailSender>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             // 8. CORS
             services.AddCors(c =>
             {

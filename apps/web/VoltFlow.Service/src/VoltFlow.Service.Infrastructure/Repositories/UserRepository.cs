@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
@@ -14,13 +13,18 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         {
         }
 
-        public Task<User?> GetByEmailAsync(string email)
+        public async Task<User?> GetByEmailAsync(string email)
         {
-            return _context.Set<User>().FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Set<User>().FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<User?> GetByIdAsync(int userId, CancellationToken ct)
+        {
+            return await _context.Set<User>().FirstOrDefaultAsync(u => u.Id == userId, ct);
         }
 
         public async Task<UserDto?> GetUserDtoByEmailAsync(string email)
-        {
+        { 
             return await _context.Set<User>()
                     .Where(u => u.Email == email)
                     .Select(u => new UserDto

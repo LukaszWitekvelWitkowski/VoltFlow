@@ -4,8 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using MockQueryable;
 using Moq;
 using VoltFlow.Service.Application.Commands.Auth;
-using VoltFlow.Service.Core.Abstractions;
-using VoltFlow.Service.Core.Abstractions.Services;
+using VoltFlow.Service.Core.Abstractions.Tools;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Infrastructure.Handlers.Auth;
 
@@ -16,7 +15,6 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
         private readonly Mock<UserManager<User>> _userManagerMock;
         private readonly Mock<SignInManager<User>> _signInManagerMock;
         private readonly Mock<IJWTProvider> _jwtProviderMock;
-        private readonly Mock<IAuthService> _authServiceMock;
         private readonly LoginHandler _handler;
 
         public LoginHandlerTests()
@@ -36,10 +34,8 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
 
             // 3. Reszta zależności
             _jwtProviderMock = new Mock<IJWTProvider>();
-            _authServiceMock = new Mock<IAuthService>();
 
             _handler = new LoginHandler(
-                _authServiceMock.Object,
                 _userManagerMock.Object,
                 _signInManagerMock.Object,
                 _jwtProviderMock.Object);
