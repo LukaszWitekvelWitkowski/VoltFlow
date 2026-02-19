@@ -10,7 +10,7 @@ namespace VoltFlow.Service.Core.Entities
         public DateTime SentDate { get; set; } = DateTime.UtcNow;
         public bool IsSuccess { get; set; }
         public string? ErrorMessage { get; set; }
-        public EmailTypeEnum EmailType { get; set; }
+        public EmailType EmailType { get; set; }
         public int? RelatedClientId { get; set; }
     }
 }

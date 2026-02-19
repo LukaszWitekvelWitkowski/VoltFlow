@@ -5,7 +5,7 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
     public interface IEmailRepository
     {
-        Task<EmailTemplate?> GetTemplateByTypeAsync(EmailTypeEnum type, CancellationToken ct = default);
+        Task<EmailTemplate?> GetTemplateByTypeAsync(EmailType type, CancellationToken ct = default);
         Task AddLogAsync(EmailLog log, CancellationToken ct = default);
         Task SaveChangesAsync(CancellationToken ct = default);
     }

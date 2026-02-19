@@ -1,6 +1,6 @@
 ﻿namespace VoltFlow.Service.Core.Enums
 {
-    public enum EmailTypeEnum
+    public enum EmailType
     {
         Promotion = 1,
         InsuranceRenewal = 2,

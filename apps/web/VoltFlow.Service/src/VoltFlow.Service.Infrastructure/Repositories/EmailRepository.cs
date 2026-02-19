@@ -19,7 +19,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             await _context.SaveChangesAsync(ct);
         }
 
-        public async Task<EmailTemplate?> GetTemplateByTypeAsync(EmailTypeEnum type, CancellationToken ct = default)
+        public async Task<EmailTemplate?> GetTemplateByTypeAsync(EmailType type, CancellationToken ct = default)
         {
             return await _context.EmailTemplates
             .FirstOrDefaultAsync(t => t.EmailType == type, ct);

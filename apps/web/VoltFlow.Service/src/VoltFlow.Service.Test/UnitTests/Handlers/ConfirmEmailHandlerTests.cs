@@ -91,7 +91,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
 
             // Symulujemy błąd wysyłki
             _emailSenderMock.Setup(x => x.SendTemplatedEmailAsync(
-                It.IsAny<string>(), It.IsAny<EmailTypeEnum>(), It.IsAny<object>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                It.IsAny<string>(), It.IsAny<EmailType>(), It.IsAny<object>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
 
             // Act
@@ -113,7 +113,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
             _tokenServiceMock.Setup(x => x.GenerateToken()).Returns("raw-token");
             _tokenServiceMock.Setup(x => x.HashToken(It.IsAny<string>())).Returns("hashed-token");
             _emailSenderMock.Setup(x => x.SendTemplatedEmailAsync(
-                It.IsAny<string>(), It.IsAny<EmailTypeEnum>(), It.IsAny<object>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                It.IsAny<string>(), It.IsAny<EmailType>(), It.IsAny<object>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
 
             _userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<User>()))

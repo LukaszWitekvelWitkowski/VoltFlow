@@ -22,7 +22,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Email
             {
                 var success = await _emailSender.SendTemplatedEmailAsync(
                     request.CustomerEmail,
-                    EmailTypeEnum.OverduePayment,
+                    EmailType.OverduePayment,
                     request,
                     request.ClientId,
                     ct);

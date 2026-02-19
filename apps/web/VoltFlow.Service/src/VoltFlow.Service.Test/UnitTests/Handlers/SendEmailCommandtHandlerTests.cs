@@ -31,7 +31,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
 
             _emailSenderMock.Setup(x => x.SendTemplatedEmailAsync(
                 It.IsAny<string>(),
-                It.IsAny<EmailTypeEnum>(),
+                It.IsAny<EmailType>(),
                 It.IsAny<object>(),
                 It.IsAny<int?>(),
                 It.IsAny<CancellationToken>()))
@@ -46,7 +46,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
        
             _emailSenderMock.Verify(x => x.SendTemplatedEmailAsync(
                 command.CustomerEmail,
-                EmailTypeEnum.OverduePayment,
+                EmailType.OverduePayment,
                 command, // Handler przekazuje cały obiekt jako model
                 command.ClientId,
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -60,7 +60,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
 
             _emailSenderMock.Setup(x => x.SendTemplatedEmailAsync(
                 It.IsAny<string>(),
-                It.IsAny<EmailTypeEnum>(),
+                It.IsAny<EmailType>(),
                 It.IsAny<object>(),
                 It.IsAny<int?>(),
                 It.IsAny<CancellationToken>()))
@@ -102,7 +102,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
             var command = new SendEmailCommand(1, "test@test.pl", "Test", DateTime.Now);
 
             _emailSenderMock.Setup(x => x.SendTemplatedEmailAsync(
-                It.IsAny<string>(), It.IsAny<EmailTypeEnum>(), It.IsAny<object>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                It.IsAny<string>(), It.IsAny<EmailType>(), It.IsAny<object>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new System.Exception("SMTP Timeout"));
 
             // Act
@@ -125,7 +125,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
             // Assert
             _emailSenderMock.Verify(x => x.SendTemplatedEmailAsync(
                 It.IsAny<string>(),
-                It.IsAny<EmailTypeEnum>(),
+                It.IsAny<EmailType>(),
                 It.IsAny<object>(),
                 expectedClientId,
                 It.IsAny<CancellationToken>()), Times.Once);

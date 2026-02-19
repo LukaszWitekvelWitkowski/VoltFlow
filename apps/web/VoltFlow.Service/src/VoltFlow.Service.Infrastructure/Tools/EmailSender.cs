@@ -20,7 +20,7 @@ namespace VoltFlow.Service.Infrastructure.Tools
 
         public async Task<bool> SendTemplatedEmailAsync<TModel>(
             string to,
-            EmailTypeEnum type,
+            EmailType type,
             TModel model,
             int? clientId = null,
             CancellationToken ct = default)

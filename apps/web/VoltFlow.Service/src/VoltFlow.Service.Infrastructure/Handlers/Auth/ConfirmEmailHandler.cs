@@ -20,7 +20,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
         private readonly ITokenRepository _tokenRepository;
         private readonly IEmailSender _emailSender;
         private readonly UserManager<User> _userManager;
-        private readonly IConfiguration _configuration;
+        private readonly string _baseUrl;
 
         public ConfirmEmailHandler(IUserRepository userRepository, ITokenService tokenService, IEmailSender emailSender, ITokenRepository tokenRepository, UserManager<User> manager, IConfiguration configuration)
         {
@@ -29,7 +29,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
             _emailSender = emailSender;
             _tokenRepository = tokenRepository;
             _userManager = manager;
-            _configuration = configuration;
+            _baseUrl = configuration["AppSettings:ClientBaseUrl"] ?? "https://localhost:7199";
         }
 
         public async Task<ServiceResponse<Result>> Handle(ConfirmEmailCommand command, CancellationToken ct)
@@ -82,12 +82,12 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
 
         private async Task<bool> SendVerificationEmail(User user, string rawToken, CancellationToken ct)
         {
-            string baseUrl = _configuration["AppSettings:ClientBaseUrl"] ?? "https://localhost:7199";
-            string verificationLink = $"{baseUrl}/verify-email?token={rawToken}&email={user.Email}";
+
+            string verificationLink = $"{_baseUrl}/verify-email?token={rawToken}&email={user.Email}";
 
             return await _emailSender.SendTemplatedEmailAsync(
                 user.Email!,
-                EmailTypeEnum.Verification,
+                EmailType.Verification,
                 new
                 {
                     UserName = user.Name,
