@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VoltFlow.Service.Core.Helper
+﻿namespace VoltFlow.Service.Core.Helper
 {
     public class TemplateHelper
     {
 
-        public static string FormatTemplate(string html, object values)
+        public static string FormatTemplate<TMobile>(string html, TMobile values)
         {
-            // Pobieramy wszystkie właściwości obiektu (np. ClientName, Amount z Twojego Recordu)
+            if (string.IsNullOrEmpty(html) || values == null)
+            {
+                return html;
+            }
             var properties = values.GetType().GetProperties();
 
             foreach (var prop in properties)

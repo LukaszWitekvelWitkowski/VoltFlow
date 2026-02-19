@@ -4,6 +4,7 @@ using VoltFlow.Service.API.Base;
 using VoltFlow.Service.Application.Commands.Auth;
 using VoltFlow.Service.Application.Queries.Auth;
 using VoltFlow.Service.Core.Models.Auth;
+using VoltFlow.Service.Core.Models.Auth.Request;
 
 namespace VoltFlow.Service.API.Controllers
 {
@@ -32,6 +33,12 @@ namespace VoltFlow.Service.API.Controllers
 
         [HttpPost("confirm-reset-password")]
         public async Task<IActionResult> ConfirmResetPassword([FromBody] ConfirmResetPasswordRequest request) => await HandlerAsync(new ConfirmResetPasswordCommand(request));
+
+        [HttpPost("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest request) => await HandlerAsync(new ConfirmEmailCommand(request));
+
+        [HttpPost("complete-onboarding")]
+        public async Task<IActionResult> CompleteOnboarding([FromBody] CompleteOnboardingRequest request) => await HandlerAsync(new CompleteClientOnboardingCommand(request));
         #endregion
         #region PUT
 

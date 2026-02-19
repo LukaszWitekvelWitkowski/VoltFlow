@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Rewrite;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using VoltFlow.Service.Core.Entities;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VoltFlow.Service.Infrastructure.Data;
 
@@ -49,6 +47,8 @@ public partial class VoltFlowDbContext : DbContext
     public virtual DbSet<EmailTemplate> EmailTemplates { get; set; }
     public virtual DbSet<EmailLog> EmailLogs { get; set; }
 
+    public virtual DbSet<VerificationToken> VerificationTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<EmailTemplate>(entity =>
@@ -68,6 +68,51 @@ public partial class VoltFlowDbContext : DbContext
             entity.Property(e => e.To).HasMaxLength(150).IsRequired();
             entity.Property(e => e.SentDate).HasColumnType("timestamp without time zone");
             entity.Property(e => e.ErrorMessage).HasMaxLength(1000);
+        });
+
+        modelBuilder.Entity<VerificationToken>(entity =>
+        {
+            entity.ToTable("Verification_Tokens");
+
+            entity.HasKey(e => e.Id).HasName("verificationtokens_pkey");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.TokenHash)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("TokenHash");
+
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasColumnName("TokenType"); // Zmapowane na Enum w kodzie
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("CreatedAt");
+
+            entity.Property(e => e.ExpiresAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("ExpiresAt");
+
+            entity.Property(e => e.IsUsed)
+                .HasDefaultValue(false)
+                .HasColumnName("IsUsed");
+
+            entity.Property(e => e.UserId).HasColumnName("UserId");
+
+            // KLUCZ OBCY I RELACJA
+            entity.HasOne(d => d.User)
+                .WithMany() // Zakładamy, że User nie musi mieć kolekcji List<VerificationToken>
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade) // Jeśli usuwamy Usera, usuwamy jego tokeny
+                .HasConstraintName("fk_verificationtokens_user");
+
+            // INDEKSY (Senior Tip dla wydajności przy dużym ruchu)
+            entity.HasIndex(e => e.TokenHash).IsUnique().HasDatabaseName("idx_tokens_hash");
+            entity.HasIndex(e => e.UserId).HasDatabaseName("idx_tokens_user_id");
         });
 
         modelBuilder.Entity<UserPasswordReset>(entity =>

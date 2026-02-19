@@ -4,7 +4,7 @@ namespace VoltFlow.Service.Core.Abstractions.Services
 {
     public interface ITokenService
     {
-        string GeneratePasswordResetToken(User user);
+        string GenerateToken();
         string HashToken(string token);
     }
 }
