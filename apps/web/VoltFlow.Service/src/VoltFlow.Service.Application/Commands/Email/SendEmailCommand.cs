@@ -4,11 +4,10 @@ using VoltFlow.Service.Core.Models.Common;
 
 namespace VoltFlow.Service.Application.Commands.Email
 {
-    public record SendOverduePaymentCommand(
+    public record SendEmailCommand(
         int ClientId,
         string CustomerEmail,
         string CustomerName,
-        decimal Amount,
         DateTime DueDate
     ) : IRequest<ServiceResponse<Result>>;
 }

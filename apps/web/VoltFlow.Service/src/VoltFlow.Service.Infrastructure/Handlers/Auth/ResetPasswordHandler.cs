@@ -36,7 +36,6 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
             var token = _tokenService.GenerateToken();
 
 
-            //    var resetLink = $"https://voltflow.pl/reset-password?token={Uri.EscapeDataString(token)}";
 
            var sucess = await _emailSender.SendTemplatedEmailAsync(
                 user.Email,

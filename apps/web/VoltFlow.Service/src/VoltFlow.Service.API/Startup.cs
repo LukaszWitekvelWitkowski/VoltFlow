@@ -113,6 +113,7 @@ namespace VoltFlow.Service.API
 
             services.AddScoped<IJWTProvider, JwtProvider>();
             services.AddScoped<IEmailSender, EmailSender>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // 8. CORS
             services.AddCors(c =>

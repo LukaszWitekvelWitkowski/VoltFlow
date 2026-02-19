@@ -1,17 +1,13 @@
 ﻿using MediatR;
 using VoltFlow.Service.Application.Commands.Email;
-using VoltFlow.Service.Core.Abstractions.Repositories;
-using VoltFlow.Service.Core.Abstractions.Services;
 using VoltFlow.Service.Core.Abstractions.Tools;
-using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Enums;
-using VoltFlow.Service.Core.Helper;
 using VoltFlow.Service.Core.Models.Auth;
 using VoltFlow.Service.Core.Models.Common;
 
 namespace VoltFlow.Service.Infrastructure.Handlers.Email
 {
-    public class SendOverduePaymentHandler : IRequestHandler<SendOverduePaymentCommand, ServiceResponse<Result>>
+    public class SendOverduePaymentHandler : IRequestHandler<SendEmailCommand, ServiceResponse<Result>>
     {
         private readonly IEmailSender _emailSender;
 
@@ -20,21 +16,28 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Email
             _emailSender = emailSender;
         }
 
-        public async Task<ServiceResponse<Result>> Handle(SendOverduePaymentCommand request, CancellationToken ct)
+        public async Task<ServiceResponse<Result>> Handle(SendEmailCommand request, CancellationToken ct)
         {
-            var success = await _emailSender.SendTemplatedEmailAsync(
-             request.CustomerEmail,
-             EmailTypeEnum.OverduePayment,
-             request,
-             request.ClientId,
-             ct);
-
-            if (!success)
+            try
             {
-                return ServiceResponse<Result>.Failure("Nie udało się wysłać wiadomości.");
-            }
+                var success = await _emailSender.SendTemplatedEmailAsync(
+                    request.CustomerEmail,
+                    EmailTypeEnum.OverduePayment,
+                    request,
+                    request.ClientId,
+                    ct);
 
-            return ServiceResponse<Result>.Success(Result.isSucces());
+                if (!success)
+                {
+                    return ServiceResponse<Result>.Failure("Failed to send message.");
+                }
+
+                return ServiceResponse<Result>.Success(Result.isSucces());
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse<Result>.Failure(ex.Message, 500);
+            }
         }
     }
 }
