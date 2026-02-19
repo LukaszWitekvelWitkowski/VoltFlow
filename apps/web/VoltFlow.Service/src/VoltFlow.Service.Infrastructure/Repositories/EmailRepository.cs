@@ -16,6 +16,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         public async Task AddLogAsync(EmailLog log, CancellationToken ct = default)
         {
             await _context.EmailLogs.AddAsync(log, ct);
+            await _context.SaveChangesAsync(ct);
         }
 
         public async Task<EmailTemplate?> GetTemplateByTypeAsync(EmailTypeEnum type, CancellationToken ct = default)

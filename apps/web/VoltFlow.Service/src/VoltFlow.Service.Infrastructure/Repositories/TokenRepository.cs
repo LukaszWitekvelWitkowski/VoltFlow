@@ -13,6 +13,11 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         {
         }
 
+        public async Task AddAsync(VerificationToken token, CancellationToken ct)
+        {
+            await _context.VerificationTokens.AddAsync(token, ct);
+        }
+
         public async Task<VerificationToken?> GetActiveTokenAsync(string hashedToken, int userId, CancellationToken ct)
         {
             return await _context.Set<VerificationToken>()

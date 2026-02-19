@@ -14,4 +14,17 @@ VALUES
 
 (4, 'Reset hasła', 'Instrukcja resetowania hasła', 
  '<h1>Reset hasła</h1><p>Otrzymaliśmy prośbę o reset hasła dla konta powiązanego z tym adresem e-mail.</p><p>Kliknij w poniższy link, aby ustawić nowe hasło (ważny 1 godzinę):</p><a href="{{ResetLink}}">Resetuj hasło</a>', 
+ NOW()),
+ (5, 'Weryfikacja adresu e-mail', 'Potwierdź swój adres e-mail w VoltFlow', 
+ '<h1>Witaj {{UserName}}!</h1>
+  <p>Dziękujemy za założenie konta w systemie VoltFlow.</p>
+  <p>Aby aktywować swój profil i uzyskać dostęp do wszystkich funkcji, prosimy o potwierdzenie adresu e-mail poprzez kliknięcie w poniższy przycisk:</p>
+  <p style="text-align: center; margin: 30px 0;">
+    <a href="{{VerificationLink}}" 
+       style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+       Potwierdź adres e-mail
+    </a>
+  </p>
+  <p>Link jest ważny przez 24 godziny. Jeśli to nie Ty zakładałeś konto, po prostu zignoruj tę wiadomość.</p>
+  <p>Pozdrawiamy,<br>Zespół VoltFlow</p>', 
  NOW());

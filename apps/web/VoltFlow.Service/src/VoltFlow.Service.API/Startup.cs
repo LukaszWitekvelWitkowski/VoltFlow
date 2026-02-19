@@ -18,6 +18,7 @@ using VoltFlow.Service.Infrastructure.Data;
 using VoltFlow.Service.Infrastructure.Handlers.Category;
 using VoltFlow.Service.Infrastructure.JWT;
 using VoltFlow.Service.Infrastructure.Repositories;
+using VoltFlow.Service.Infrastructure.Tools;
 
 namespace VoltFlow.Service.API
 {
@@ -96,6 +97,8 @@ namespace VoltFlow.Service.API
             services.AddScoped<ICatalogRepository, CatalogRepository>();
             services.AddScoped<IRoleRepository, RoleRespository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IEmailRepository, EmailRepository>();
+            services.AddScoped<ITokenRepository, TokenRepository>();
 
             // 7. Dependency Injection - Services
             services.AddScoped<ICategoryService, CategoryService>();
@@ -105,10 +108,12 @@ namespace VoltFlow.Service.API
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<IEmailRepository, EmailRepository>();
+     
+
 
             services.AddScoped<IJWTProvider, JwtProvider>();
-            
+            services.AddScoped<IEmailSender, EmailSender>();
+
             // 8. CORS
             services.AddCors(c =>
             {

@@ -55,7 +55,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
                 return ServiceResponse<Result>.Failure("Failed to send email.");
             }
 
-            return ServiceResponse<Result>.Success(new Result(true));
+            return ServiceResponse<Result>.Success(Result.isSucces());
         }
     }
 }

@@ -5,7 +5,7 @@ using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Enums;
 using VoltFlow.Service.Core.Helper;
 
-namespace VoltFlow.Service.Infrastructure.Utils
+namespace VoltFlow.Service.Infrastructure.Tools
 {
     public class EmailSender : IEmailSender
     {
@@ -45,8 +45,6 @@ namespace VoltFlow.Service.Infrastructure.Utils
                 RelatedClientId = clientId,
                 ErrorMessage = success ? null : "Błąd wysyłki - sprawdź logi serwisu e-mail."
             }, ct);
-
-            await _emailRepository.SaveChangesAsync(ct);
 
             return success;
         }

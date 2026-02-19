@@ -4,6 +4,7 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
     public interface ITokenRepository
     {
+        Task AddAsync(VerificationToken token, CancellationToken ct);
         Task<VerificationToken?> GetActiveTokenAsync(string hashedToken, int userId, CancellationToken ct);
 
         void Remove(VerificationToken token);

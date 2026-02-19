@@ -34,7 +34,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Email
                 return ServiceResponse<Result>.Failure("Nie udało się wysłać wiadomości.");
             }
 
-            return ServiceResponse<Result>.Success(new Result(true));
+            return ServiceResponse<Result>.Success(Result.isSucces());
         }
     }
 }

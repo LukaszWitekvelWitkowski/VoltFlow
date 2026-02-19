@@ -41,7 +41,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
 
             await _userRepository.UpdateAsync(userEntity);
 
-            return ServiceResponse<Result>.Success( new Result(true));
+            return ServiceResponse<Result>.Success(Result.isSucces());
         }
     }
 }

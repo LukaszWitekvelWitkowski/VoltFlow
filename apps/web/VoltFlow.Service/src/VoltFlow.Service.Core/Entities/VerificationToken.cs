@@ -13,5 +13,19 @@ namespace VoltFlow.Service.Core.Entities
         public bool IsUsed { get; private set; }
 
         public virtual User User { get; set; } = null!;
+
+
+        public static VerificationToken Create(string tokenHash, int userId, TokenType type, int expiryHours = 24)
+        {
+            return new VerificationToken
+            {
+                TokenHash = tokenHash,
+                UserId = userId,
+                Type = type,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddHours(expiryHours),
+                IsUsed = false
+            };
+        }
     }
 }

@@ -2,7 +2,7 @@
 using VoltFlow.Service.Core.Abstractions.Tools;
 using VoltFlow.Service.Infrastructure.Data;
 
-namespace VoltFlow.Service.Infrastructure.Utils
+namespace VoltFlow.Service.Infrastructure.Tools
 {
     public class UnitOfWork : IUnitOfWork
     {
