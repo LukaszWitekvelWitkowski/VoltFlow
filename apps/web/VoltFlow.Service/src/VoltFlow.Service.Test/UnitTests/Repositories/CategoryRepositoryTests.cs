@@ -20,7 +20,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetCategoryByIdQuery_ShouldReturnCorrectData_FromDatabase()
         {
-            CacheRepository<CategoriesDTO, CategoryDTO, Category>.ResetStaticCache();
+            CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
             // Arrange
             var category = new Category { IdCategory = 1, Name = "Electronics", IsObsolete = false };
             _context.Set<Category>().Add(category);
@@ -91,7 +91,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetCategoriesPagedByNameQuery_ShouldReturnFilteredResults()
         {
-            CacheRepository<CategoriesDTO, CategoryDTO, Category>.ResetStaticCache();
+            CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
             // Arrange
             _context.Set<Category>().AddRange(new List<Category>
             {

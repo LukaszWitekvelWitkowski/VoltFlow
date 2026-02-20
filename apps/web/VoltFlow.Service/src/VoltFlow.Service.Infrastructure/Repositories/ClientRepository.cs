@@ -10,7 +10,7 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class ClientRepository : CacheRepository<ClientsDTO, ClientDTO, Client>, IClientRepository
+    public class ClientRepository : CacheRepository<ClientCacheDTO, ClientDTO, Client>, IClientRepository
     {
         public ClientRepository(VoltFlowDbContext context, IConfiguration configuration) : base(context, configuration)
         {

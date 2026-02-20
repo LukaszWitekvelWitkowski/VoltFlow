@@ -5,6 +5,6 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
     public interface IRoleRepository
     {
-        Task<ServiceResponse<RolesDTO>> GetRolesQuery();
+        Task<ServiceResponse<RoleCacheDTO>> GetRolesQuery();
     }
 }

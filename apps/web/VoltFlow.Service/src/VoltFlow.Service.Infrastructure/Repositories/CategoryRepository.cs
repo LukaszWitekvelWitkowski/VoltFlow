@@ -11,22 +11,22 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class CategoryRepository : CacheRepository<CategoriesDTO,CategoryDTO, Category>, ICategoryRepository
+    public class CategoryRepository : CacheRepository<CategoryCacheDTO,CategoryDTO, Category>, ICategoryRepository
     {
         public CategoryRepository(VoltFlowDbContext context, IConfiguration configuration)
         : base(context, configuration)
         {
         }
 
-        public async Task<ServiceResponse<CategoriesDTO>> GetCategoriesQuery()
+        public async Task<ServiceResponse<CategoryCacheDTO>> GetCategoriesQuery()
         {
 
 
             var cache = await GetOrUpdateCacheAsync();
-            if (cache != null) return ServiceResponse<CategoriesDTO>.Result(cache);
+            if (cache != null) return ServiceResponse<CategoryCacheDTO>.Result(cache);
 
             var dbData = await FetchFromDbInternal();
-            return ServiceResponse<CategoriesDTO>.Result(new CategoriesDTO() { Items = dbData });
+            return ServiceResponse<CategoryCacheDTO>.Result(new CategoryCacheDTO() { Items = dbData });
         }
 
         public async Task<ServiceResponse<CategoryDTO>> GetCategoryByIdQuery(int id)

@@ -2,7 +2,7 @@
 
 namespace VoltFlow.Service.Core.Models.Role.DTOs
 {
-    public class RolesDTO : ICacheData<RoleDto>
+    public class RoleCacheDTO : ICacheData<RoleDto>
     {
         public IEnumerable<RoleDto> Items { get; set; } = new List<RoleDto>();
 

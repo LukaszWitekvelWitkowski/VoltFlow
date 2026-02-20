@@ -7,14 +7,14 @@ using VoltFlow.Service.Core.Models.Validators;
 
 namespace VoltFlow.Service.Infrastructure.Handlers.Nowy_folder
 {
-    public class GetElementsHandler : IRequestHandler<GetElementsQuery, ServiceResponse<ElementsDTO>>
+    public class GetElementsHandler : IRequestHandler<GetElementsQuery, ServiceResponse<ElementCacheDTO>>
     {
         private readonly IElementRepository _elementRepository;
         public GetElementsHandler(IElementRepository elementRepository)
         {
             _elementRepository = elementRepository;
         }
-        public async Task<ServiceResponse<ElementsDTO>> Handle(GetElementsQuery request, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<ElementCacheDTO>> Handle(GetElementsQuery request, CancellationToken cancellationToken)
         {
             return ResponseValidator.EnsureSuccessAndData(await _elementRepository.GetElementsQuery(), "Elements");
         }

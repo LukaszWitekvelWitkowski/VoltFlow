@@ -7,7 +7,7 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class RoleRespository : CacheRepository<RolesDTO,RoleDto, Role>, IRoleRepository
+    public class RoleRespository : CacheRepository<RoleCacheDTO,RoleDto, Role>, IRoleRepository
     {
         public RoleRespository(VoltFlowDbContext context, IConfiguration configuration) : base(context, configuration)
         {
@@ -20,15 +20,15 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             Name = e.Name
         };
 
-        public async Task<ServiceResponse<RolesDTO>> GetRolesQuery()
+        public async Task<ServiceResponse<RoleCacheDTO>> GetRolesQuery()
         {
             var cache = await GetOrUpdateCacheAsync();
 
             if (cache != null)
-                return ServiceResponse<RolesDTO>.Result(_cache);
+                return ServiceResponse<RoleCacheDTO>.Result(_cache);
 
             var dbData = await FetchFromDbInternal();
-            return ServiceResponse<RolesDTO>.Result(new RolesDTO { Items = dbData });
+            return ServiceResponse<RoleCacheDTO>.Result(new RoleCacheDTO { Items = dbData });
         }
     }
 }

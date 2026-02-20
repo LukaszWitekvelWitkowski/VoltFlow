@@ -2,7 +2,7 @@
 
 namespace VoltFlow.Service.Core.Models.ElementGroup.DTOs
 {
-    public class ElementGroupsDTO : ICacheData<ElementGroupDTO>
+    public class ElementGroupCacheDTO : ICacheData<ElementGroupDTO>
     {
         public IEnumerable<ElementGroupDTO> Items { get; set; } = new List<ElementGroupDTO>();
 

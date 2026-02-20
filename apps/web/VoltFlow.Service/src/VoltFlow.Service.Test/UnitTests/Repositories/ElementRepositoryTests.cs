@@ -52,7 +52,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetElementsPagedByNameQuery_ShouldUseCache_AndReturnCorrectResults()
         {
-            CacheRepository<ElementsDTO, ElementDTO, Element>.ResetStaticCache();
+            CacheRepository<ElementCacheDTO, ElementDTO, Element>.ResetStaticCache();
             // Arrange
             var group = new ElementGroup { IdElementGroup = 1, Name = "Group 1" };
             var elements = new List<Element>
@@ -106,7 +106,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task IsExists_ShouldReturnTrue_ForDuplicateName()
         {
-            CacheRepository<ElementsDTO, ElementDTO, Element>.ResetStaticCache();
+            CacheRepository<ElementCacheDTO, ElementDTO, Element>.ResetStaticCache();
             // Arrange
             var element = new Element { IdElement = 5, Name = "Cable", ElementGroupId = 1 };
             await SeedDataAsync(new[] { element });
@@ -124,7 +124,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task AddElement_ShouldThrowException_WhenNameIsDuplicate()
         {
-            CacheRepository<ElementsDTO, ElementDTO, Element>.ResetStaticCache();
+            CacheRepository<ElementCacheDTO, ElementDTO, Element>.ResetStaticCache();
             // Arrange
             var group = new ElementGroup { IdElementGroup = 1, Name = "Electronics" };
             var existingElement = new Element { IdElement = 1, Name = "Resistor", ElementGroupId = 1 };

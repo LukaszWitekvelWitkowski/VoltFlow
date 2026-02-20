@@ -11,7 +11,7 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class ElementRepository : CacheRepository<ElementsDTO, ElementDTO, Element>, IElementRepository
+    public class ElementRepository : CacheRepository<ElementCacheDTO, ElementDTO, Element>, IElementRepository
     {
         public ElementRepository(VoltFlowDbContext context, IConfiguration configuration) : base(context, configuration) 
         { }
@@ -42,15 +42,15 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             return ServiceResponse<ElementDTO>.Success(MapToDto(newElement));
         }
 
-        public async Task<ServiceResponse<ElementsDTO>> GetElementsQuery()
+        public async Task<ServiceResponse<ElementCacheDTO>> GetElementsQuery()
         {
             var cache = await GetOrUpdateCacheAsync();
 
             if (cache != null)
-                return ServiceResponse<ElementsDTO>.Result(cache);
+                return ServiceResponse<ElementCacheDTO>.Result(cache);
 
             var dbData = await FetchFromDbInternal();
-            return ServiceResponse<ElementsDTO>.Result(new ElementsDTO { Items = dbData });
+            return ServiceResponse<ElementCacheDTO>.Result(new ElementCacheDTO { Items = dbData });
         }
 
         public async Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id)

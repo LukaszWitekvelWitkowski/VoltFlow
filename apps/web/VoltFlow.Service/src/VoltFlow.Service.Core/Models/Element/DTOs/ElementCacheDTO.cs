@@ -2,7 +2,7 @@
 
 namespace VoltFlow.Service.Core.Models.Element.DTOs
 {
-    public class ElementsDTO : ICacheData<ElementDTO>
+    public class ElementCacheDTO : ICacheData<ElementDTO>
     {
         public IEnumerable<ElementDTO> Items { get; set; } = new List<ElementDTO>();
 

@@ -25,7 +25,7 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
             {
                 _factory = factory;
                 _client = factory.CreateClient();
-                CacheRepository<CategoriesDTO, CategoryDTO, Category>.ResetStaticCache();
+                CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
 
             }
 
@@ -34,14 +34,14 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
             [Fact]
         public async Task GetCategories_ShouldReturnAllCategories()
         {
-            CacheRepository<CategoriesDTO, CategoryDTO, Category>.ResetStaticCache();
+            CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
             // Arrange
             DbContext.categories.AddRange(new Category { Name = "Cat 1" }, new Category { Name = "Cat 2" });
             await DbContext.SaveChangesAsync();
 
             // Act
             var response = await Client.GetAsync("/api/category");
-            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<CategoriesDTO>>();
+            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<CategoryCacheDTO>>();
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -60,7 +60,7 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
         [Fact]
         public async Task GetCategorySearch_ShouldReturnFilteredResults_WithPagination()
         {
-            CacheRepository<CategoriesDTO, CategoryDTO, Category>.ResetStaticCache();
+            CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
             // 1. Arrange - Dodajemy dane bezpośrednio przez DbContext z klasy bazowej
             DbContext.categories.AddRange(
                 new Category { Name = "Electronics" },

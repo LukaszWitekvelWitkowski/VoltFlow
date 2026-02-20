@@ -22,7 +22,7 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
         [Fact]
         public async Task GetElementGroups_ShouldReturnAllGroups_FromDatabase()
         {
-            CacheRepository<ElementGroupsDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
+            CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
 
             // 1. Arrange - Najpierw tworzymy kategorię-rodzica
             var category = new Category { Name = "Test Category" };
@@ -41,7 +41,7 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
 
             // 4. Assert
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<ElementGroupsDTO>>();
+            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<ElementGroupCacheDTO>>();
             Assert.NotNull(result?._Data);
             Assert.Equal(2, result._Data.Items.Count());
         }

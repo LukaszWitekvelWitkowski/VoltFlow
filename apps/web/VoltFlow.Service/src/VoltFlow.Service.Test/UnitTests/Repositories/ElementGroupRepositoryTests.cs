@@ -28,7 +28,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task AddElementGroup_ShouldSucceed_AndInvalidateCache()
         {
-            CacheRepository<ElementGroupsDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
+            CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
             // Arrange
             var category = new Category { IdCategory = 1, Name = "Main Category" };
             await SeedDataAsync(new[] { category });
@@ -50,7 +50,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetElementGroupSearchQuery_ShouldReturnPagedResults_FromCache()
         {
-            CacheRepository<ElementGroupsDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
+            CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
             // Arrange
             var category = new Category { IdCategory = 1, Name = "Cat" };
             var groups = new List<ElementGroup>
@@ -97,7 +97,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task IsExists_ShouldIgnoreCurrentId_DuringUpdateValidation()
         {
-            CacheRepository<ElementGroupsDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
+            CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
             // Arrange
             await SeedDataAsync(new[] { new Category { IdCategory = 1, Name = "C1" } });
             var existing = new ElementGroup { IdElementGroup = 10, Name = "UniqueGroup", CategoryId = 1 };
@@ -150,7 +150,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task AddElementGroup_ShouldHandleDuplicateNames_ViaIsExistsValidation()
         {
-            CacheRepository<ElementGroupsDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
+            CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
             // Arrange
             var category = new Category { IdCategory = 1, Name = "Cat" };
             var group = new ElementGroup { IdElementGroup = 1, Name = "UniqueName", CategoryId = 1 };
@@ -171,7 +171,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetElementGroupSearchQuery_ShouldReturnEmpty_WhenNoMatchFound()
         {
-            CacheRepository<ElementGroupsDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
+            CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
             // Arrange
             var category = new Category { IdCategory = 1, Name = "Cat" };
             await SeedDataAsync(new[] { category });
@@ -189,7 +189,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetElementGroupByIdQuery_ShouldReturnNullData_WhenIdIsInvalid()
         {
-            CacheRepository<ElementGroupsDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
+            CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
             // Act
             var exception = await Assert.ThrowsAsync<NotFoundException>(() =>
                     _repository.GetElementGroupByIdQuery(0)

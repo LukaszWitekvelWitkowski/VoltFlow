@@ -96,7 +96,7 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
 
             // ZMIANA: Zamiast IEnumerable<ElementDTO>, użyj klasy ElementsDTO 
             // (lub sprawdź, co dokładnie zwraca Twój GetElementsQueryHandler)
-            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<ElementsDTO>>();
+            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<ElementCacheDTO>>();
 
             Assert.NotNull(result?._Data);
             Assert.True(result._Data.Items.Count() >= 2);
@@ -105,9 +105,9 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
         [Fact]
         public async Task UpdateElement_ShouldModifyName()
         {
-            CacheRepository<CategoriesDTO, CategoryDTO, Category>.ResetStaticCache();
-            CacheRepository<ElementGroupsDTO, ElementGroupDTO, Element>.ResetStaticCache();
-            CacheRepository<ElementsDTO, ElementDTO, Element>.ResetStaticCache();
+            CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
+            CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, Element>.ResetStaticCache();
+            CacheRepository<ElementCacheDTO, ElementDTO, Element>.ResetStaticCache();
 
             // Arrange
             var groupId = await CreateHierarchyAndGetGroupIdAsync();

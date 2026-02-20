@@ -2,7 +2,7 @@
 
 namespace VoltFlow.Service.Core.Models.ClientAddress.DTOs
 {
-    public class ClientAddresesDTO : ICacheData<ClientAddressDTO>
+    public class ClientAddressCacheDTO : ICacheData<ClientAddressDTO>
     {
         public IEnumerable<ClientAddressDTO> Items { get; set; } = new List<ClientAddressDTO>();
         public void insert(IEnumerable<ClientAddressDTO> items)

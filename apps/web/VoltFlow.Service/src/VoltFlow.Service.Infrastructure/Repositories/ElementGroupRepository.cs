@@ -11,7 +11,7 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class ElementGroupRepository : CacheRepository<ElementGroupsDTO, ElementGroupDTO, ElementGroup>, IElementGroupRepository
+    public class ElementGroupRepository : CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>, IElementGroupRepository
     {
         public ElementGroupRepository(VoltFlowDbContext context, IConfiguration configuration) : base(context, configuration)
         {
@@ -127,13 +127,13 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 new PagedResultDTO<ElementGroupDTO>(dbItems, dbTotal, page, size));
         }
 
-        public async Task<ServiceResponse<ElementGroupsDTO>> GetElementGroupsQuery()
+        public async Task<ServiceResponse<ElementGroupCacheDTO>> GetElementGroupsQuery()
         {
             var cache = await GetOrUpdateCacheAsync();
-            if (cache != null) return ServiceResponse<ElementGroupsDTO>.Result(cache);
+            if (cache != null) return ServiceResponse<ElementGroupCacheDTO>.Result(cache);
 
             var data = await FetchFromDbInternal();
-            return ServiceResponse<ElementGroupsDTO>.Result(new ElementGroupsDTO() {Items = data });
+            return ServiceResponse<ElementGroupCacheDTO>.Result(new ElementGroupCacheDTO() {Items = data });
         }
 
         public async Task<bool> IsExists(string name, int? id = null)

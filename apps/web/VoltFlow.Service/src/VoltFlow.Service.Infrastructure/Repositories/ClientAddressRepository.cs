@@ -11,7 +11,7 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class ClientAddressRepository : CacheRepository<ClientAddresesDTO, ClientAddressDTO, ClientAddress>, IClientAdressRepository
+    public class ClientAddressRepository : CacheRepository<ClientAddressCacheDTO, ClientAddressDTO, ClientAddress>, IClientAdressRepository
     {
         public ClientAddressRepository(VoltFlowDbContext context, IConfiguration configuration) : base(context, configuration)
         {
