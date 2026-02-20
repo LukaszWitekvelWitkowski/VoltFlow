@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using VoltFlow.Service.Application.Commands.Auth;
-using VoltFlow.Service.Core.Models.Auth;
+using VoltFlow.Service.Core.Models.Auth.Request;
 
 namespace VoltFlow.Service.API.Validator
 {

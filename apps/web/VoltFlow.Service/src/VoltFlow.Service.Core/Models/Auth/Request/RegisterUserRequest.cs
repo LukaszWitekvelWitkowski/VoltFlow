@@ -1,5 +1,4 @@
-﻿
-namespace VoltFlow.Service.Core.Models.Auth
+﻿namespace VoltFlow.Service.Core.Models.Auth.Request
 {
     public class RegisterUserRequest
     {

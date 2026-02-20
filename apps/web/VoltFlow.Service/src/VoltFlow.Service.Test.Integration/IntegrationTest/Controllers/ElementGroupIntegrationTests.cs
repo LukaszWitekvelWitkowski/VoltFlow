@@ -9,6 +9,7 @@ using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.ElementGroup.DTOs;
 using VoltFlow.Service.Core.Models.ElementGroup.Request;
+using VoltFlow.Service.Infrastructure.Repositories;
 
 namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
 {
@@ -21,6 +22,8 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
         [Fact]
         public async Task GetElementGroups_ShouldReturnAllGroups_FromDatabase()
         {
+            CacheRepository<ElementGroupsDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
+
             // 1. Arrange - Najpierw tworzymy kategorię-rodzica
             var category = new Category { Name = "Test Category" };
             DbContext.categories.Add(category);
@@ -40,7 +43,7 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<ServiceResponse<ElementGroupsDTO>>();
             Assert.NotNull(result?._Data);
-            Assert.Equal(2, result._Data.ElementGroups.Count());
+            Assert.Equal(2, result._Data.Items.Count());
         }
 
 
@@ -56,8 +59,6 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
 
             if (response.StatusCode == HttpStatusCode.NotFound || content.StartsWith("Grupa"))
             {
-                // Jeśli tu wejdzie, to znaczy że masz błąd tekstowy zamiast JSONa
-                // Możesz albo asertować tekst, albo uznać to za sukces testu (bo błąd 404 wystąpił)
                 Assert.Contains("nie istnieje", content);
                 return;
             }
@@ -106,7 +107,7 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
             var group = new ElementGroup
             {
                 Name = "Initial Name",
-                CategoryId = category.IdCategory // To jest kluczowe!
+                CategoryId = category.IdCategory 
             };
             DbContext.elementgroups.Add(group);
             await DbContext.SaveChangesAsync();
@@ -116,7 +117,7 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
             {
                 IdElementGroup = group.IdElementGroup,
                 Name = "Brand New Name",
-                CategoryId = category.IdCategory // Zakładając, że model też wymaga Id kategorii
+                CategoryId = category.IdCategory 
             };
 
             // 3. Act
@@ -158,7 +159,6 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
             var result = await response.Content.ReadFromJsonAsync<ServiceResponse<PagedResultDTO<ElementGroupDTO>>>();
 
             Assert.NotNull(result?._Data);
-            // Powinno znaleźć "Alpha" i "Gamma", bo zawierają literę 'a' (jeśli search jest case-insensitive)
             Assert.True(result._Data.TotalCount >= 2);
         }
     }

@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Exceptions;
+using VoltFlow.Service.Core.Models.Category.DTOs;
 using VoltFlow.Service.Core.Models.Category.Request;
+using VoltFlow.Service.Core.Models.ElementGroup.DTOs;
 using VoltFlow.Service.Infrastructure.Repositories;
 
 namespace VoltFlow.Service.Test.UnitTests.Repositories
@@ -18,6 +20,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetCategoryByIdQuery_ShouldReturnCorrectData_FromDatabase()
         {
+            CacheRepository<CategoriesDTO, CategoryDTO, Category>.ResetStaticCache();
             // Arrange
             var category = new Category { IdCategory = 1, Name = "Electronics", IsObsolete = false };
             _context.Set<Category>().Add(category);
@@ -43,7 +46,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
 
             // Assert
             Assert.True(addResult._IsSuccess);
-            Assert.Contains(getResult._Data!.Categories, c => c.Name == newName);
+            Assert.Contains(getResult._Data!.Items, c => c.Name == newName);
             Assert.Equal(1, await _context.Set<Category>().CountAsync());
         }
 
@@ -88,6 +91,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetCategoriesPagedByNameQuery_ShouldReturnFilteredResults()
         {
+            CacheRepository<CategoriesDTO, CategoryDTO, Category>.ResetStaticCache();
             // Arrange
             _context.Set<Category>().AddRange(new List<Category>
             {

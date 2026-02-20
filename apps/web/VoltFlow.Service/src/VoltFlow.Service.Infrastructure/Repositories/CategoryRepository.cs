@@ -11,41 +11,11 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class CategoryRepository : BaseRepository, ICategoryRepository
+    public class CategoryRepository : CacheRepository<CategoriesDTO,CategoryDTO, Category>, ICategoryRepository
     {
-        private CategoriesDTO? _cache;
-
         public CategoryRepository(VoltFlowDbContext context, IConfiguration configuration)
-            : base(context, configuration)
+        : base(context, configuration)
         {
-        }
-
-        private async Task<CategoriesDTO> GetOrUpdateCacheAsync()
-        {
-            if (!_isCacheEnabled) return null!;
-            if (_cache != null) return _cache;
-
-            await _lock.WaitAsync();
-            try
-            {
-                if (_cache == null)
-                {
-                    var count = await _context.Set<Category>().CountAsync();
-                    if (count > _maxCacheThreshold)
-                    {
-                        _isCacheEnabled = false;
-                        return null!;
-                    }
-
-                    var data = await FetchFromDbInternal();
-                    _cache = new CategoriesDTO(data);
-                }
-                return _cache;
-            }
-            finally
-            {
-                _lock.Release();
-            }
         }
 
         public async Task<ServiceResponse<CategoriesDTO>> GetCategoriesQuery()
@@ -56,7 +26,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             if (cache != null) return ServiceResponse<CategoriesDTO>.Result(cache);
 
             var dbData = await FetchFromDbInternal();
-            return ServiceResponse<CategoriesDTO>.Result(new CategoriesDTO(dbData));
+            return ServiceResponse<CategoriesDTO>.Result(new CategoriesDTO() { Items = dbData });
         }
 
         public async Task<ServiceResponse<CategoryDTO>> GetCategoryByIdQuery(int id)
@@ -64,7 +34,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             var cache = await GetOrUpdateCacheAsync();
             if (cache != null)
             {
-                var item = cache.Categories.FirstOrDefault(c => c.Id == id);
+                var item = cache.Items.FirstOrDefault(c => c.Id == id);
 
                 // ZAMIAST: return ServiceResponse<CategoryDTO>.Result(item!);
                 if (item == null) throw new NotFoundException($"Kategoria o ID {id} nie istnieje.");
@@ -90,7 +60,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             if (cache != null)
             {
-                var sourceResponse = ServiceResponse<IEnumerable<CategoryDTO>>.Result(cache.Categories);
+                var sourceResponse = ServiceResponse<IEnumerable<CategoryDTO>>.Result(cache.Items);
                 return PagedHelper.ToPagedResponse(sourceResponse, name, c => c.Name, page, size);
             }
 
@@ -122,7 +92,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             _context.Set<Category>().Add(newCategory);
             await _context.SaveChangesAsync();
 
-            _cache = null; // Inwalidacja
+            ResetStaticCache();
 
             return ServiceResponse<CategoryDTO>.Success(MapToDto(newCategory));
         }
@@ -140,7 +110,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            _cache = null; // Inwalidacja
+            ResetStaticCache();
 
             return ServiceResponse<CategoryDTO>.Success(MapToDto(category));
         }
@@ -152,7 +122,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             if (cache != null)
             {
-                return cache.Categories.Any(c => (id == null || c.Id != id)
+                return cache.Items.Any(c => (id == null || c.Id != id)
                                                  && c.Name.ToLower() == normalizedName);
             }
 
@@ -161,15 +131,8 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                                 && c.Name.ToLower() == normalizedName);
         }
 
-        private async Task<List<CategoryDTO>> FetchFromDbInternal()
-        {
-            return await _context.Set<Category>()
-                .AsNoTracking()
-                .Select(c => MapToDto(c))
-                .ToListAsync();
-        }
-
-        private static CategoryDTO MapToDto(Category c) => new CategoryDTO
+        override
+        public  CategoryDTO MapToDto(Category c) => new CategoryDTO
         {
             Id = c.IdCategory,
             Name = c.Name,
@@ -184,7 +147,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             if (cache != null)
             {
                 // Szukamy w pamięci RAM (szybka operacja)
-                return cache.Categories
+                return cache.Items
                     .FirstOrDefault(c => c.Name.ToLower() == normalizedName);
             }
 

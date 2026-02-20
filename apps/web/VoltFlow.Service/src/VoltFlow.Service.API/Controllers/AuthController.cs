@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using VoltFlow.Service.API.Base;
 using VoltFlow.Service.Application.Commands.Auth;
 using VoltFlow.Service.Application.Queries.Auth;
-using VoltFlow.Service.Core.Models.Auth;
 using VoltFlow.Service.Core.Models.Auth.Request;
 
 namespace VoltFlow.Service.API.Controllers

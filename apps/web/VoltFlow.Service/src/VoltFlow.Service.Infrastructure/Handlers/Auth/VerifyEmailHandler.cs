@@ -1,8 +1,5 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using VoltFlow.Service.Application.Commands.Auth;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Abstractions.Services;
@@ -21,19 +18,22 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
         private readonly ITokenService _tokenService;
         private readonly UserManager<User> _userManager;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IClientService _clientService;
 
         public VerifyEmailHandler(
             IUserRepository userRepository,
             ITokenRepository tokenRepository,
             ITokenService tokenService,
             UserManager<User> userManager,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IClientService clientService)
         {
             _userRepository = userRepository;
             _tokenRepository = tokenRepository;
             _tokenService = tokenService;
             _userManager = userManager;
             _unitOfWork = unitOfWork;
+            _clientService = clientService;
         }
 
         public async Task<ServiceResponse<Result>> Handle(VerifyEmailCommand command, CancellationToken ct)
@@ -58,6 +58,8 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Auth
 
                 // 4. Unieważnij użyty token
                 await InvalidateToken(tokenRecord, ct);
+
+                await _clientService.CreateClientFromUserAsync(user, ct);
 
                 return ServiceResponse<Result>.Success(Result.isSucces());
             }

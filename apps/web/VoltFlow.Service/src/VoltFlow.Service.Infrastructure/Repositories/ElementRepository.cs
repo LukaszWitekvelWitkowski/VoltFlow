@@ -11,43 +11,12 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class ElementRepository : BaseRepository, IElementRepository
+    public class ElementRepository : CacheRepository<ElementsDTO, ElementDTO, Element>, IElementRepository
     {
-       
-        private ElementsDTO? _cache;
-
         public ElementRepository(VoltFlowDbContext context, IConfiguration configuration) : base(context, configuration) 
         { }
   
-        private async Task<ElementsDTO> GetOrUpdateCacheAsync()
-        {
-            if (!_isCacheEnabled) return null!;
-
-            if (_cache != null) return _cache;
-
-            await _lock.WaitAsync();
-            try
-            {
-                if (_cache == null)
-                {
-                    var count = await _context.Set<Element>().CountAsync();
-                    if (count > _maxCacheThreshold)
-                    {
-                        _isCacheEnabled = false; 
-                        return null!;
-                    }
-
-                    var data = await FetchFromDbInternal();
-                    _cache = new ElementsDTO { Elements = data };
-                }
-                return _cache;
-            }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-
+      
         public async Task<ServiceResponse<ElementDTO>> AddElement(CreateElementRequest request)
         {
 
@@ -81,7 +50,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 return ServiceResponse<ElementsDTO>.Result(cache);
 
             var dbData = await FetchFromDbInternal();
-            return ServiceResponse<ElementsDTO>.Result(new ElementsDTO { Elements = dbData });
+            return ServiceResponse<ElementsDTO>.Result(new ElementsDTO { Items = dbData });
         }
 
         public async Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id)
@@ -89,7 +58,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             var cache = await GetOrUpdateCacheAsync();
             if (cache != null)
             {
-                var item = cache.Elements.FirstOrDefault(e => e.IdElement == id);
+                var item = cache.Items.FirstOrDefault(e => e.IdElement == id);
                 return ServiceResponse<ElementDTO>.Result(item!);
             }
 
@@ -102,15 +71,9 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             return ServiceResponse<ElementDTO>.Result(element!);
         }
 
-        private async Task<IEnumerable<ElementDTO>> FetchFromDbInternal()
-        {
-            return await _context.Set<Element>()
-                .AsNoTracking()
-                .Select(e => MapToDto(e))
-                .ToListAsync();
-        }
-
-        private static ElementDTO MapToDto(Element e) => new ElementDTO
+       
+        override
+        public ElementDTO MapToDto(Element e) => new ElementDTO
         {
             IdElement = e.IdElement,
             Name = e.Name,
@@ -126,7 +89,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             if (cache != null)
             {
-                var sourceResponse = ServiceResponse<IEnumerable<ElementDTO>>.Result(cache.Elements);
+                var sourceResponse = ServiceResponse<IEnumerable<ElementDTO>>.Result(cache.Items);
 
                 return PagedHelper.ToPagedResponse(
                     sourceResponse,
@@ -175,17 +138,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            // 2. Kluczowy moment: Inwalidacja cache
-            // Po udanym zapisie ustawiamy cache na null, aby następny odczyt pobrał świeże dane
-            await _lock.WaitAsync();
-            try
-            {
-                _cache = null;
-            }
-            finally
-            {
-                _lock.Release();
-            }
+            ResetStaticCache();
 
             return ServiceResponse<ElementDTO>.Success(MapToDto(element));
         }
@@ -198,7 +151,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             if (cache != null)
             {
                 // Sprawdzenie w zbuforowanej liście
-                return cache.Elements.Any(e => (id == null || e.IdElement != id)
+                return cache.Items.Any(e => (id == null || e.IdElement != id)
                                                && e.Name.ToLower() == normalizedName);
             }
 

@@ -1,17 +1,14 @@
-﻿namespace VoltFlow.Service.Core.Models.Category.DTOs
-{
-    public class CategoriesDTO
-    {
-        public IEnumerable<CategoryDTO> Categories { get; set; }
+﻿using VoltFlow.Service.Core.Abstractions.Generic;
 
-        public CategoriesDTO(IEnumerable<CategoryDTO>? categories)
+namespace VoltFlow.Service.Core.Models.Category.DTOs
+{
+    public class CategoriesDTO : ICacheData<CategoryDTO>
+    {
+        public IEnumerable<CategoryDTO> Items { get; set; } = new List<CategoryDTO>();
+
+        public void insert(IEnumerable<CategoryDTO> items)
         {
-            if (categories == null)
-            {
-                Categories = new List<CategoryDTO>();
-                return;
-            }
-            Categories = categories;
+            Items = items;
         }
     }
 }

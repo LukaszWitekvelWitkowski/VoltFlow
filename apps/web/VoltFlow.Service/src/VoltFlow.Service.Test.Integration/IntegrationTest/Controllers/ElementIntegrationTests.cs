@@ -5,9 +5,12 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Models.Category.DTOs;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.Element.DTOs;
 using VoltFlow.Service.Core.Models.Element.Request;
+using VoltFlow.Service.Core.Models.ElementGroup.DTOs;
+using VoltFlow.Service.Infrastructure.Repositories;
 
 namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
 {
@@ -96,12 +99,16 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
             var result = await response.Content.ReadFromJsonAsync<ServiceResponse<ElementsDTO>>();
 
             Assert.NotNull(result?._Data);
-            Assert.True(result._Data.Elements.Count() >= 2);
+            Assert.True(result._Data.Items.Count() >= 2);
         }
 
         [Fact]
         public async Task UpdateElement_ShouldModifyName()
         {
+            CacheRepository<CategoriesDTO, CategoryDTO, Category>.ResetStaticCache();
+            CacheRepository<ElementGroupsDTO, ElementGroupDTO, Element>.ResetStaticCache();
+            CacheRepository<ElementsDTO, ElementDTO, Element>.ResetStaticCache();
+
             // Arrange
             var groupId = await CreateHierarchyAndGetGroupIdAsync();
             var element = new Element { Name = "Old Name", ElementGroupId = groupId };

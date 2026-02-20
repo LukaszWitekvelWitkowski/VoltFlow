@@ -1,17 +1,14 @@
-﻿namespace VoltFlow.Service.Core.Models.ElementGroup.DTOs
-{
-    public class ElementGroupsDTO
-    {
-        public IEnumerable<ElementGroupDTO> ElementGroups { get; set; }
+﻿using VoltFlow.Service.Core.Abstractions.Generic;
 
-        public ElementGroupsDTO(IEnumerable<ElementGroupDTO>? elementGroups)
+namespace VoltFlow.Service.Core.Models.ElementGroup.DTOs
+{
+    public class ElementGroupsDTO : ICacheData<ElementGroupDTO>
+    {
+        public IEnumerable<ElementGroupDTO> Items { get; set; } = new List<ElementGroupDTO>();
+
+        public void insert(IEnumerable<ElementGroupDTO> enumerable)
         {
-            if (elementGroups == null)
-            {
-                ElementGroups = new List<ElementGroupDTO>();
-                return;
-            }
-            ElementGroups = elementGroups;
+            Items = enumerable;
         }
     }
 }

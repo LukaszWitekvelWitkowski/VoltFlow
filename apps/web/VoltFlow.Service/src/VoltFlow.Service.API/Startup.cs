@@ -99,6 +99,8 @@ namespace VoltFlow.Service.API
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IEmailRepository, EmailRepository>();
             services.AddScoped<ITokenRepository, TokenRepository>();
+            services.AddScoped<IClientRepository, ClientRepository>();
+            services.AddScoped<IClientAdressRepository, ClientAddressRepository>();
 
             // 7. Dependency Injection - Services
             services.AddScoped<ICategoryService, CategoryService>();
@@ -108,7 +110,7 @@ namespace VoltFlow.Service.API
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ITokenService, TokenService>();
-     
+            services.AddScoped<IClientService, ClientService>();
 
 
             services.AddScoped<IJWTProvider, JwtProvider>();

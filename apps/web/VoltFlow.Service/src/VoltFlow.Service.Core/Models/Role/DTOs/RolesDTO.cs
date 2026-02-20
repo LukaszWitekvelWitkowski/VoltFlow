@@ -1,7 +1,14 @@
-﻿namespace VoltFlow.Service.Core.Models.Role.DTOs
+﻿using VoltFlow.Service.Core.Abstractions.Generic;
+
+namespace VoltFlow.Service.Core.Models.Role.DTOs
 {
-    public class RolesDTO
+    public class RolesDTO : ICacheData<RoleDto>
     {
-        public required IEnumerable<RoleDto> Roles { get; set; }
+        public IEnumerable<RoleDto> Items { get; set; } = new List<RoleDto>();
+
+        public void insert(IEnumerable<RoleDto> enumerable)
+        {
+            Items = enumerable;
+        }
     }
 }
