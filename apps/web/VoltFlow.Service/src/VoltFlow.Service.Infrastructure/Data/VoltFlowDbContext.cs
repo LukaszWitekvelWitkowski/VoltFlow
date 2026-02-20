@@ -206,6 +206,9 @@ public partial class VoltFlowDbContext : DbContext
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Phone).HasMaxLength(15);
+
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone");
+            entity.Property(e => e.statusClient).HasColumnName("StatusClient").HasColumnType("smallint");
         });
 
         modelBuilder.Entity<ClientAddress>(entity =>

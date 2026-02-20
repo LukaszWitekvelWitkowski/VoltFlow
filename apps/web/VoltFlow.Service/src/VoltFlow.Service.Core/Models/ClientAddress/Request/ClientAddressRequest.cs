@@ -1,8 +1,8 @@
 ﻿using VoltFlow.Service.Core.Enums;
 
-namespace VoltFlow.Service.Core.Models.ClientAddress.DTOs
+namespace VoltFlow.Service.Core.Models.ClientAddress.Request
 {
-    public class ClientAddressDTO
+    public class ClientAddressRequest
     {
         public int IdAddress { get; set; }
         public string City { get; set; } = string.Empty;
@@ -12,5 +12,6 @@ namespace VoltFlow.Service.Core.Models.ClientAddress.DTOs
         public AddressType AddressType { get; set; }
         public string LocationNumber { get; set; } = string.Empty;
         public bool IsObsolete { get; set; }
+        public int ClientId { get; set; }
     }
 }

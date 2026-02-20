@@ -3,10 +3,8 @@ using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Abstractions.Services;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Enums;
-using VoltFlow.Service.Core.Models.Auth;
 using VoltFlow.Service.Core.Models.Client.DTOs;
 using VoltFlow.Service.Core.Models.Client.Requests;
-using VoltFlow.Service.Core.Models.ClientAddress.DTOs;
 using VoltFlow.Service.Core.Models.Common;
 
 namespace VoltFlow.Service.Application.Services
@@ -24,10 +22,6 @@ namespace VoltFlow.Service.Application.Services
             _addressRepository = addressRepository;
         }
 
-        public async Task<ServiceResponse<Result>> AddOrUpdateAddressAsync(int clientId, ClientAddressDTO addressDto, CancellationToken ct)
-        {
-            return _addressRepository.AddOrUpdateAddressAsync(clientId, addressDto, ct);
-        }
 
         public async Task<ServiceResponse<int>> CreateClientFromUserAsync(User user, CancellationToken ct)
         {
@@ -35,6 +29,12 @@ namespace VoltFlow.Service.Application.Services
             {
                 _logger.LogWarning("User {UserId} does not have an email, cannot create client record.", user.Id);
                 return ServiceResponse<int>.Failure("User must have an email to create a client record.");
+            }
+
+            if (user.Role.IdRole != 1 )
+            {
+                _logger.LogWarning("User {UserId} has role {RoleId}, expected role 1 for client creation.", user.Id, user.Role.IdRole);
+                return ServiceResponse<int>.Failure("User does not have the correct role to create a client record.");
             }
 
             var newClient = new Client
@@ -62,10 +62,6 @@ namespace VoltFlow.Service.Application.Services
             return await _clientRepository.GetAllClientsAsync(email, page, size,ct);
         }
 
-        public Task<ServiceResponse<ClientAddressDTO>> GetClientAddressAsync(int clientId, CancellationToken ct)
-        {
-            return _addressRepository.GetClientAddressAsync(clientId, ct);
-        }
 
         public async Task<ServiceResponse<ClientDTO>> UpdateClientProfileAsync(ClientRequest request, CancellationToken ct)
         {
