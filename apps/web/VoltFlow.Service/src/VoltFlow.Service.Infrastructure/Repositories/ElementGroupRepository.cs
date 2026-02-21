@@ -18,7 +18,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         }
 
       
-        public async Task<ServiceResponse<ElementGroupDTO>> AddElementGroup(CreateElementGroupRequest request)
+        public async Task<ElementGroupDTO> AddElementGroup(CreateElementGroupRequest request)
         {
             // Sprawdzamy czy kategoria istnieje (szybki AnyAsync)
             var categoryExists = await _context.Set<Category>()
@@ -40,10 +40,10 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             // Inwalidacja cache
             ResetStaticCache();
 
-            return ServiceResponse<ElementGroupDTO>.Success(MapToDto(newGroup));
+            return MapToDto(newGroup);
         }
 
-        public async Task<ServiceResponse<ElementGroupDTO>> UpdateElementGroup(UpdateElementGroupRequest request)
+        public async Task<ElementGroupDTO> UpdateElementGroup(UpdateElementGroupRequest request)
         {
             var elementGroup = await _context.Set<ElementGroup>()
                 .FirstOrDefaultAsync(eg => eg.IdElementGroup == request.IdElementGroup);
@@ -66,40 +66,32 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             // Inwalidacja cache
             ResetStaticCache();
 
-            return ServiceResponse<ElementGroupDTO>.Success(MapToDto(elementGroup));
+            return MapToDto(elementGroup);
         }
 
-        public async Task<ServiceResponse<ElementGroupDTO>> GetElementGroupByIdQuery(int id)
+        public async Task<ElementGroupDTO?> GetElementGroupByIdQuery(int id)
         {
             var cache = await GetOrUpdateCacheAsync();
             if (cache != null)
             {
-                var item = cache.Items.FirstOrDefault(eg => eg.IdElementGroup == id);
-                if (item == null) throw new NotFoundException($"Grupa elementów o ID {id} nie istnieje.");
-
-                return ServiceResponse<ElementGroupDTO>.Result(item);
+                return cache.Items.FirstOrDefault(eg => eg.IdElementGroup == id);
             }
 
-            var group = await _context.Set<ElementGroup>()
+            return await _context.Set<ElementGroup>()
                 .AsNoTracking()
                 .Where(eg => eg.IdElementGroup == id)
                 .Select(eg => MapToDto(eg))
                 .FirstOrDefaultAsync();
-
-            return ServiceResponse<ElementGroupDTO>.Result(group!);
         }
 
-        public async Task<ServiceResponse<PagedResultDTO<ElementGroupDTO>>> GetElementGroupSearchQuery(string? name, int page, int size)
+        public async Task<PagedResultDTO<ElementGroupDTO>> GetElementGroupSearchQuery(string? name, int page, int size)
         {
             var cache = await GetOrUpdateCacheAsync();
 
             if (cache != null)
             {
-                // Używamy PagedHelper dla danych z cache
-                var sourceResponse = ServiceResponse<IEnumerable<ElementGroupDTO>>.Result(cache.Items);
-
                 return PagedHelper.ToPagedResponse(
-                    sourceResponse,
+                    cache,
                     name,
                     eg => eg.Name,
                     page,
@@ -123,17 +115,16 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 .Select(eg => MapToDto(eg))
                 .ToListAsync();
 
-            return ServiceResponse<PagedResultDTO<ElementGroupDTO>>.Result(
-                new PagedResultDTO<ElementGroupDTO>(dbItems, dbTotal, page, size));
+            return new PagedResultDTO<ElementGroupDTO>(dbItems, dbTotal, page, size);
         }
 
-        public async Task<ServiceResponse<ElementGroupCacheDTO>> GetElementGroupsQuery()
+        public async Task<ElementGroupCacheDTO> GetElementGroupsQuery()
         {
             var cache = await GetOrUpdateCacheAsync();
-            if (cache != null) return ServiceResponse<ElementGroupCacheDTO>.Result(cache);
+            if (cache != null) return cache;
 
             var data = await FetchFromDbInternal();
-            return ServiceResponse<ElementGroupCacheDTO>.Result(new ElementGroupCacheDTO() {Items = data });
+            return new ElementGroupCacheDTO() {Items = data };
         }
 
         public async Task<bool> IsExists(string name, int? id = null)

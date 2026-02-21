@@ -6,6 +6,7 @@ using VoltFlow.Service.Core.Enums;
 using VoltFlow.Service.Core.Models.Client.DTOs;
 using VoltFlow.Service.Core.Models.Client.Requests;
 using VoltFlow.Service.Core.Models.Common;
+using VoltFlow.Service.Core.Models.Validators;
 
 namespace VoltFlow.Service.Application.Services
 {
@@ -21,25 +22,25 @@ namespace VoltFlow.Service.Application.Services
         }
 
 
-        public async Task<ServiceResponse<int>> CreateClientFromUserAsync(User user, CancellationToken ct)
+        public async Task<int> CreateClientFromUserAsync(User user, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(user.Email))
             {
                 _logger.LogWarning("User {UserId} does not have an email, cannot create client record.", user.Id);
-                return ServiceResponse<int>.Failure("User must have an email to create a client record.");
+               throw new DllNotFoundException("User must have an email to create a client record.");
             }
 
             if (user.RoleId != 1 )
             {
                 _logger.LogWarning("User {UserId} has role {RoleId}, expected role 1 for client creation.", user.Id, user.Role.IdRole);
-                return ServiceResponse<int>.Failure("User does not have the correct role to create a client record.");
+                throw new DllNotFoundException("User does not have the correct role to create a client record.");
             }
 
             var existingClient = await _clientRepository.GetByEmailAsync(user.Email, ct);
             if (existingClient != null) {
 
                 _logger.LogInformation("Client record already exists for user {UserId} with email {Email}.", user.Id, user.Email);
-                return ServiceResponse<int>.Success(existingClient.IdClient);
+                return existingClient.IdClient;
             }
 
             var newClient = new Client
@@ -48,30 +49,30 @@ namespace VoltFlow.Service.Application.Services
                 Email = user.Email,
                 Name = user.Name,
                 CreatedAt = DateTime.UtcNow,
-                statusClient = StatusClient.NoCompoleted
+                statusClient = ClientStatus.NoCompoleted
             };
 
             try
             {
                 await _clientRepository.AddAsync(newClient, ct);
-                return ServiceResponse<int>.Success(newClient.IdClient);
+                return newClient.IdClient;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while creating client for user {UserId}", user.Id);
-                return ServiceResponse<int>.Failure("Failed to create client record.");
+                throw new DllNotFoundException("Failed to create client record.");
             }
         }
 
         public async Task<ServiceResponse<PagedResultDTO<ClientDTO>>> GetAllClientsAsync(string? email, int page, int size, CancellationToken ct)
         {
-            return await _clientRepository.GetAllClientsAsync(email, page, size,ct);
+            return await ResponseValidator.ExecuteAsync( async () => await _clientRepository.GetAllClientsAsync(email, page, size,ct), "Clinet");
         }
 
 
         public async Task<ServiceResponse<ClientDTO>> UpdateClientProfileAsync(ClientRequest request, CancellationToken ct)
         {
-            return await _clientRepository.UpdateCleintAsync(request, ct);
+            return await ResponseValidator.ExecuteAsync( async () => await _clientRepository.UpdateCleintAsync(request, ct), "Client");
         }
     }
 }

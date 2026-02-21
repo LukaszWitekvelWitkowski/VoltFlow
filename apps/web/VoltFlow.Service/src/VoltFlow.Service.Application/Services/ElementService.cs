@@ -26,7 +26,7 @@ public class ElementService : IElementService
 
             // 3. Save
             var result = await _elementRepository.AddElement(request);
-            return ServiceResponse<ElementDTO>.Success(result._Data!);
+            return ServiceResponse<ElementDTO>.Success(result);
         }
 
         public async Task<ServiceResponse<ElementDTO>> UpdateElement(UpdateElementRequest request)
@@ -36,7 +36,7 @@ public class ElementService : IElementService
 
             // 1. Downloading data for comparison
             var currentResponse = await _elementRepository.GetElementByIdQuery(request.Id);
-            var currentElement = currentResponse._Data ?? throw new NotFoundException("Element nie istnieje.");
+            var currentElement = currentResponse ?? throw new NotFoundException("Element nie istnieje.");
 
             // 2. Checking if any change has occurred (Idempotence)
             if (IsDataUnchanged(currentElement, request))
@@ -48,7 +48,7 @@ public class ElementService : IElementService
 
             // 4. Update
             var updated = await _elementRepository.UpdateElement(request);
-            return ServiceResponse<ElementDTO>.Success(updated._Data!);
+            return ServiceResponse<ElementDTO>.Success(updated);
         }
 
         #region Private Helper Methods

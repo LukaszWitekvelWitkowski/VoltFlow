@@ -31,8 +31,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.AddTaskEntity(request);
 
             // Assert
-            Assert.True(result._IsSuccess);
-            Assert.Equal("Fix cables", result._Data!.Description);
+            Assert.Equal("Fix cables", result.Description);
             Assert.Equal(1, await _context.Set<TaskEntity>().CountAsync());
         }
 
@@ -53,9 +52,9 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetTaskEntitySearchQuery("mount", 1, 10);
 
             // Assert
-            Assert.Single(result._Data!.Results);
-            Assert.Equal("Mounting", result._Data.Results.First().Description);
-            Assert.Equal(1, result._Data.TotalCount);
+            Assert.Single(result!.Results);
+            Assert.Equal("Mounting", result.Results.First().Description);
+            Assert.Equal(1, result.TotalCount);
         }
 
         [Fact]
@@ -80,7 +79,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var updatedResult = await _repository.GetTaskEntitiesQuery();
 
             // Assert
-            var updatedItem = updatedResult._Data!.Items.First(t => t.IdTask == 5);
+            var updatedItem = updatedResult.Items.First(t => t.IdTask == 5);
             Assert.Equal("New Desc", updatedItem.Description);
             Assert.Equal(WorkItemStatus.ToDo, updatedItem.Status);
         }
@@ -117,7 +116,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetTaskEntityByIdQuery(-1);
 
             // Assert
-            Assert.Null(result._Data);
+            Assert.Null(result);
         }
 
         [Fact]
@@ -128,7 +127,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetTaskEntityByIdQuery(99999);
 
             // Assert
-            Assert.Null(result._Data);
+            Assert.Null(result);
         }
 
         [Fact]

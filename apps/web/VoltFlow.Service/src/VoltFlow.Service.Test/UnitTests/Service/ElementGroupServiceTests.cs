@@ -70,7 +70,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             };
 
             _repoMock.Setup(r => r.GetElementGroupByIdQuery(10))
-                     .ReturnsAsync(ServiceResponse<ElementGroupDTO>.Result(currentDto));
+                     .ReturnsAsync(currentDto);
 
             // Act
             var result = await _service.UpdateElementGroup(request);
@@ -90,10 +90,10 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             var currentDto = new ElementGroupDTO { IdElementGroup = 10, Name = "Sensors", CategoryId = 1 };
 
             _repoMock.Setup(r => r.GetElementGroupByIdQuery(10))
-                     .ReturnsAsync(ServiceResponse<ElementGroupDTO>.Result(currentDto));
+                     .ReturnsAsync(currentDto);
 
             _repoMock.Setup(r => r.UpdateElementGroup(request))
-                     .ReturnsAsync(ServiceResponse<ElementGroupDTO>.Result(new ElementGroupDTO { Name = "Sensors", CategoryId = 2 }));
+                     .ReturnsAsync(new ElementGroupDTO { Name = "Sensors", CategoryId = 2 });
 
             // Act
             var result = await _service.UpdateElementGroup(request);
@@ -111,7 +111,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
 
             // Symulujemy zwrócenie null, co wyzwoli NotFoundException w serwisie
             _repoMock.Setup(r => r.GetElementGroupByIdQuery(999))
-                     .ReturnsAsync(ServiceResponse<ElementGroupDTO>.Result(null!));
+                   .ReturnsAsync((ElementGroupDTO)null!);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateElementGroup(request));

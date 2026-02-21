@@ -1,6 +1,6 @@
 ﻿namespace VoltFlow.Service.Core.Enums
 {
-    public enum StatusClient
+    public enum ClientStatus
     {
         Active = 1,
         Inactive = 2,

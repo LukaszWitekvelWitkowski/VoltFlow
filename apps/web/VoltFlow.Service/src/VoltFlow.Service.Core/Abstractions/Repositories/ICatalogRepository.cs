@@ -6,6 +6,6 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
     public interface ICatalogRepository
     {
-        public Task<ServiceResponse<PagedResultDTO<ElementTreeDTO>>> GetCatalogSearchQuery(CatalogSearchRequest request);
+        public Task<PagedResultDTO<ElementTreeDTO>> GetCatalogSearchQuery(CatalogSearchRequest request);
     }
 }

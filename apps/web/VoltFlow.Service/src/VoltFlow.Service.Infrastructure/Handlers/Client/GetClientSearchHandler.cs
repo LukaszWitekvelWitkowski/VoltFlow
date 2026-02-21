@@ -3,6 +3,7 @@ using VoltFlow.Service.Application.Queries.Client;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Models.Client.DTOs;
 using VoltFlow.Service.Core.Models.Common;
+using VoltFlow.Service.Core.Models.Validators;
 
 namespace VoltFlow.Service.Infrastructure.Handlers.Client
 {
@@ -15,7 +16,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Client
         }
         public async Task<ServiceResponse<PagedResultDTO<ClientDTO>>> Handle(GetClientSearchQuery request, CancellationToken ct)
         {
-            return await _clientRepository.GetAllClientsAsync(request.Email, request.PageNumber, request.PageSize, ct);
+            return await ResponseValidator.ExecuteAsync( async () => await _clientRepository.GetAllClientsAsync(request.Email, request.PageNumber, request.PageSize, ct), "Client");
         }
     }
 }

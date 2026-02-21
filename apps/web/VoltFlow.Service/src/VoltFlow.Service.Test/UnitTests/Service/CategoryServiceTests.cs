@@ -48,7 +48,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
 
             _categoryRepoMock.Setup(r => r.IsExists(categoryName, null)).ReturnsAsync(false);
             _categoryRepoMock.Setup(r => r.AddCategory(categoryName))
-                             .ReturnsAsync(ServiceResponse<CategoryDTO>.Result(expectedDto));
+                             .ReturnsAsync(expectedDto);
 
             // Act
             var result = await _service.CreateCategory(categoryName);
@@ -71,7 +71,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             var currentDto = new CategoryDTO { Id = 1, Name = "Same", IsObsolete = false };
 
             _categoryRepoMock.Setup(r => r.GetCategoryByIdQuery(1))
-                             .ReturnsAsync(ServiceResponse<CategoryDTO>.Result(currentDto));
+                             .ReturnsAsync(currentDto);
 
             // Act
             var result = await _service.UpdateCategory(request);
@@ -91,7 +91,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
 
             // Symulujemy zwrócenie null przez repozytorium (zgodnie z naszą ostatnią poprawką!)
             _categoryRepoMock.Setup(r => r.GetCategoryByIdQuery(99))
-                             .ReturnsAsync(ServiceResponse<CategoryDTO>.Result(null!));
+                             .ReturnsAsync((CategoryDTO)null!);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateCategory(request));
@@ -105,7 +105,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             var currentDto = new CategoryDTO { Id = 1, Name = "OldName" };
 
             _categoryRepoMock.Setup(r => r.GetCategoryByIdQuery(1))
-                             .ReturnsAsync(ServiceResponse<CategoryDTO>.Result(currentDto));
+                             .ReturnsAsync(currentDto);
             _categoryRepoMock.Setup(r => r.IsExists("ExistingName", 1))
                              .ReturnsAsync(true);
 

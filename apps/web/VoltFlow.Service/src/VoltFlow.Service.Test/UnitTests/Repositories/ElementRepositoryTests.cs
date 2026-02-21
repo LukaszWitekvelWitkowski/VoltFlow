@@ -39,9 +39,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.AddElement(request);
 
             // Assert
-            Assert.True(result._IsSuccess);
-            Assert.Equal("New Element", result._Data!.Name);
-            Assert.Equal("Test Description", result._Data.Description);
+            Assert.Equal("New Element", result.Name);
+            Assert.Equal("Test Description", result.Description);
 
             // Sprawdzenie w bazie
             var dbElement = await _context.Set<Element>().FirstOrDefaultAsync();
@@ -70,8 +69,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetElementsPagedByNameQuery("bolt", 1, 10);
 
             // Assert
-            Assert.Single(result._Data!.Results);
-            Assert.Equal("Bolt", result._Data.Results.First().Name);
+            Assert.Single(result.Results);
+            Assert.Equal("Bolt", result.Results.First().Name);
         }
 
         [Fact]
@@ -100,7 +99,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetElementsQuery();
 
             // Assert
-            Assert.Contains(result._Data!.Items, e => e.Name == "Updated Name");
+            Assert.Contains(result.Items, e => e.Name == "Updated Name");
         }
 
         [Fact]
@@ -172,8 +171,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.AddElement(request);
 
             // Assert
-            Assert.True(result._IsSuccess);
-            Assert.Equal(longDescription, result._Data!.Description);
+            Assert.Equal(longDescription, result.Description);
         }
 
         [Fact]
@@ -183,8 +181,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetElementByIdQuery(-1);
 
             // Assert
-            Assert.True(result._IsSuccess); 
-            Assert.Null(result._Data);    
+            Assert.Null(result);    
         }
 
         [Fact]
@@ -199,8 +196,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetElementsPagedByNameQuery("NonExistentName123", 1, 10);
 
             // Assert
-            Assert.Empty(result._Data!.Results);
-            Assert.Equal(0, result._Data.TotalCount);
+            Assert.Empty(result.Results);
+            Assert.Equal(0, result.TotalCount);
         }
     }
 }

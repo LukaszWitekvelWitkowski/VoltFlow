@@ -43,8 +43,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var finalQuery = await _repository.GetElementGroupsQuery();
 
             // Assert
-            Assert.True(result._IsSuccess);
-            Assert.Contains(finalQuery._Data!.Items, eg => eg.Name == "Valid Group");
+            Assert.Contains(finalQuery.Items, eg => eg.Name == "Valid Group");
         }
 
         [Fact]
@@ -66,9 +65,9 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetElementGroupSearchQuery("co", 1, 10);
 
             // Assert
-            Assert.Single(result._Data!.Results);
-            Assert.Equal("Connectors", result._Data.Results.First().Name);
-            Assert.Equal(1, result._Data.TotalCount);
+            Assert.Single(result.Results);
+            Assert.Equal("Connectors", result.Results.First().Name);
+            Assert.Equal(1, result.TotalCount);
         }
 
         [Fact]
@@ -90,8 +89,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.UpdateElementGroup(request);
 
             // Assert
-            Assert.Equal("New Name", result._Data!.Name);
-            Assert.True(result._Data.IsObsolete);
+            Assert.Equal("New Name", result.Name);
+            Assert.True(result.IsObsolete);
         }
 
         [Fact]
@@ -181,22 +180,22 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetElementGroupSearchQuery("NonExistentString", 1, 10);
 
             // Assert
-            Assert.NotNull(result._Data);
-            Assert.Empty(result._Data.Results);
-            Assert.Equal(0, result._Data.TotalCount);
+            Assert.NotNull(result);
+            Assert.Empty(result.Results);
+            Assert.Equal(0, result.TotalCount);
         }
 
         [Fact]
         public async Task GetElementGroupByIdQuery_ShouldReturnNullData_WhenIdIsInvalid()
         {
+            // Arrange
             CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>.ResetStaticCache();
+
             // Act
-            var exception = await Assert.ThrowsAsync<NotFoundException>(() =>
-                    _repository.GetElementGroupByIdQuery(0)
-                );
+            var result = await _repository.GetElementGroupByIdQuery(0);
 
             // Assert
-            Assert.Equal("Grupa elementów o ID 0 nie istnieje.", exception.Message);
+            Assert.Null(result);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using VoltFlow.Service.Core.Models.Common;
+﻿using VoltFlow.Service.Core.Abstractions.Generic;
+using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Pagination;
 
 namespace VoltFlow.Service.Test.UnitTests.Helpers
@@ -27,63 +28,83 @@ namespace VoltFlow.Service.Test.UnitTests.Helpers
         public void ToPagedResponse_ShouldReturnCorrectNumberOfItems(int page, int size, int expectedCount)
         {
             // Arrange
-            var source = ServiceResponse<IEnumerable<TestDto>>.Result(_sourceData);
+            var source = new TestCacheData<TestDto>(_sourceData);
 
             // Act
             var result = PagedHelper.ToPagedResponse(source, null, x => x.Name, page, size);
 
             // Assert
-            Assert.Equal(expectedCount, result._Data!.Results.Count());
-            Assert.Equal(5, result._Data.TotalCount);
+            Assert.Equal(expectedCount, result.Results.Count());
+            Assert.Equal(5, result.TotalCount);
         }
 
         [Fact]
         public void ToPagedResponse_ShouldFilterByName_CaseInsensitive()
         {
             // Arrange
-            var source = ServiceResponse<IEnumerable<TestDto>>.Result(_sourceData);
+            var source = new TestCacheData<TestDto>(_sourceData);
 
             // Act
             var result = PagedHelper.ToPagedResponse(source, "ANAN", x => x.Name, 1, 10);
 
             // Assert
-            Assert.Single(result._Data!.Results);
-            Assert.Equal("Banana", result._Data.Results.First().Name);
-            Assert.Equal(1, result._Data.TotalCount); // TotalCount po filtrze powinien wynosić 1
+            Assert.Single(result.Results);
+            Assert.Equal("Banana", result.Results.First().Name);
+            Assert.Equal(1, result.TotalCount); // TotalCount po filtrze powinien wynosić 1
         }
 
         [Fact]
         public void ToPagedResponse_ShouldHandleEmptySource()
         {
             // Arrange
-            var source = ServiceResponse<IEnumerable<TestDto>>.Result(new List<TestDto>());
+            var source = new TestCacheData<TestDto>(new List<TestDto>());
 
             // Act
             var result = PagedHelper.ToPagedResponse(source, "Any", x => x.Name, 1, 10);
 
             // Assert
-            Assert.Empty(result._Data!.Results);
-            Assert.Equal(0, result._Data.TotalCount);
+            Assert.Empty(result.Results);
+            Assert.Equal(0, result.TotalCount);
         }
 
         [Fact]
         public void ToPagedResponse_ShouldReturnEmpty_WhenPageNumberTooHigh()
         {
             // Arrange
-            var source = ServiceResponse<IEnumerable<TestDto>>.Result(_sourceData);
+            var source = new TestCacheData<TestDto>(_sourceData);
 
             // Act
             var result = PagedHelper.ToPagedResponse(source, null, x => x.Name, 10, 2);
 
             // Assert
-            Assert.Empty(result._Data!.Results);
-            Assert.Equal(5, result._Data.TotalCount); 
+            Assert.Empty(result.Results);
+            Assert.Equal(5, result.TotalCount); 
         }
 
         private class TestDto
         {
             public int Id { get; set; }
             public string Name { get; set; } = string.Empty;
+        }
+
+        private class TestCacheData<T> : ICacheData<T> where T : class
+        {
+            // Właściwość wymagana przez Twój interfejs
+            public IEnumerable<T> Items { get; set; } = new List<T>();
+
+            // Metoda wymagana przez Twój interfejs
+            public void insert(IEnumerable<T> enumerable)
+            {
+                Items = enumerable;
+            }
+
+            // Opcjonalny konstruktor dla wygody w testach
+            public TestCacheData() { }
+
+            public TestCacheData(IEnumerable<T> initialData)
+            {
+                Items = initialData;
+            }
         }
     }
 }

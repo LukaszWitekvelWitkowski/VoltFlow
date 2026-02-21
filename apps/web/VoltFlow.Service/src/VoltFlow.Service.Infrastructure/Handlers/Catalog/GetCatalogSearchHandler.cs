@@ -18,7 +18,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Catalog
 
         public async Task<ServiceResponse<PagedResultDTO<ElementTreeDTO>>> Handle(GetCatalogSearchQuery request, CancellationToken cancellationToken)
         {
-            return ResponseValidator.EnsureSuccessAndData(await _catalogRepository.GetCatalogSearchQuery(request._request), "Catalog");
+            return await ResponseValidator.ExecuteAsync(async () => await _catalogRepository.GetCatalogSearchQuery(request._request), "Catalog");
         }
     }
 }

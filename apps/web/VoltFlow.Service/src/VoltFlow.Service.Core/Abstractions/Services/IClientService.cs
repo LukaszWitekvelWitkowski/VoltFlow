@@ -7,7 +7,7 @@ namespace VoltFlow.Service.Core.Abstractions.Services
 {
     public interface IClientService
     {
-        Task<ServiceResponse<int>> CreateClientFromUserAsync(User user, CancellationToken ct);
+        Task<int> CreateClientFromUserAsync(User user, CancellationToken ct);
         Task<ServiceResponse<ClientDTO>> UpdateClientProfileAsync(ClientRequest command, CancellationToken ct);
         Task<ServiceResponse<PagedResultDTO<ClientDTO>>> GetAllClientsAsync(string? email, int page, int size, CancellationToken ct);
     }

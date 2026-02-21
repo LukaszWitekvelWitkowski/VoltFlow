@@ -6,11 +6,11 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
     public interface IElementRepository
     {
-        Task<ServiceResponse<ElementCacheDTO>> GetElementsQuery();
-        Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id);
-        Task<ServiceResponse<PagedResultDTO<ElementDTO>>> GetElementsPagedByNameQuery(string? name, int page, int size);
-        Task<ServiceResponse<ElementDTO>> AddElement(CreateElementRequest name);
-        Task<ServiceResponse<ElementDTO>> UpdateElement(UpdateElementRequest request);
+        Task<ElementCacheDTO> GetElementsQuery();
+        Task<ElementDTO?> GetElementByIdQuery(int id);
+        Task<PagedResultDTO<ElementDTO>> GetElementsPagedByNameQuery(string? name, int page, int size);
+        Task<ElementDTO> AddElement(CreateElementRequest name);
+        Task<ElementDTO> UpdateElement(UpdateElementRequest request);
         Task<bool> IsExists(string name, int? id = null);
     }
 }

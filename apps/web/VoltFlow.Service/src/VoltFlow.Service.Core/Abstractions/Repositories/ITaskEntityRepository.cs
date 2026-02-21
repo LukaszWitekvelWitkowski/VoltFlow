@@ -7,11 +7,11 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
     public interface ITaskEntityRepository
     {
-        Task<ServiceResponse<TaskEntityDTO>> AddTaskEntity(CreateTaskEntityRequest request);
-        Task<ServiceResponse<TaskEntitiesDTO>> GetTaskEntitiesQuery();
-        Task<ServiceResponse<TaskEntityDTO>> GetTaskEntityByIdQuery(int id);
-        Task<ServiceResponse<PagedResultDTO<TaskEntityDTO>>> GetTaskEntitySearchQuery(string? name, int page, int size);
-        Task<ServiceResponse<TaskEntityDTO>> UpdateTaskEntity(UpdateTaskEntityRequest request);
+        Task<TaskEntityDTO> AddTaskEntity(CreateTaskEntityRequest request);
+        Task<TaskEntitiesDTO> GetTaskEntitiesQuery();
+        Task<TaskEntityDTO?> GetTaskEntityByIdQuery(int id);
+        Task<PagedResultDTO<TaskEntityDTO>> GetTaskEntitySearchQuery(string? name, int page, int size);
+        Task<TaskEntityDTO> UpdateTaskEntity(UpdateTaskEntityRequest request);
         Task<bool> IsExists(string description, TaskEntityType type, int? excludeId = null);
     }
 }

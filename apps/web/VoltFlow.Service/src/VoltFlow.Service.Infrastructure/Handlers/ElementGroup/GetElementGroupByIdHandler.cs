@@ -19,7 +19,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.ElementGroup
 
         public async Task<ServiceResponse<ElementGroupDTO>> Handle(GetElementGroupByIdQuery request, CancellationToken cancellationToken)
         {
-            return ResponseValidator.EnsureSuccessAndData(await _elementGroupRepository.GetElementGroupByIdQuery(request.Id), "Element Group");
+            return await ResponseValidator.ExecuteAsync(async () => await _elementGroupRepository.GetElementGroupByIdQuery(request.Id), "Element Group");
         }
     }
 }

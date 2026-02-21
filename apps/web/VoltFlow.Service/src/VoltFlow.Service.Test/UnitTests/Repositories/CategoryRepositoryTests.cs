@@ -30,8 +30,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetCategoryByIdQuery(1);
 
             // Assert
-            Assert.NotNull(result._Data);
-            Assert.Equal("Electronics", result._Data.Name);
+            Assert.NotNull(result);
+            Assert.Equal("Electronics", result.Name);
         }
 
         [Fact]
@@ -45,8 +45,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var getResult = await _repository.GetCategoriesQuery();
 
             // Assert
-            Assert.True(addResult._IsSuccess);
-            Assert.Contains(getResult._Data!.Items, c => c.Name == newName);
+            Assert.Contains(getResult.Items, c => c.Name == newName);
             Assert.Equal(1, await _context.Set<Category>().CountAsync());
         }
 
@@ -64,8 +63,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.UpdateCategory(request);
 
             // Assert
-            Assert.Equal("Updated Name", result._Data!.Name);
-            Assert.True(result._Data.IsObsolete);
+            Assert.Equal("Updated Name", result.Name);
+            Assert.True(result.IsObsolete);
 
             // Test NotFound
             var badRequest = new UpdateCategoryRequest { Id = 99, Name = "None" };
@@ -106,9 +105,9 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetCategoriesPagedByNameQuery("a", 1, 10);
 
             // Assert
-            Assert.Equal(2, result._Data!.TotalCount);
-            Assert.Contains(result._Data.Results, c => c.Name == "Spare parts");
-            Assert.Contains(result._Data.Results, c => c.Name == "Electrical components");
+            Assert.Equal(2, result.TotalCount);
+            Assert.Contains(result.Results, c => c.Name == "Spare parts");
+            Assert.Contains(result.Results, c => c.Name == "Electrical components");
         }
 
         [Fact]
