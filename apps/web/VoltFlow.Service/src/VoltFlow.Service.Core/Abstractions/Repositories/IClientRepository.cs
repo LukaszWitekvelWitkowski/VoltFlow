@@ -9,6 +9,7 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
     {
         Task AddAsync(Client newClient, CancellationToken ct);
         Task<ServiceResponse<PagedResultDTO<ClientDTO>>> GetAllClientsAsync(string? email, int page, int size,CancellationToken ct);
+        Task<ClientDTO?> GetByEmailAsync(string email, CancellationToken ct);
         Task<ServiceResponse<ClientDTO>> UpdateCleintAsync(ClientRequest request, CancellationToken ct);
     }
 }

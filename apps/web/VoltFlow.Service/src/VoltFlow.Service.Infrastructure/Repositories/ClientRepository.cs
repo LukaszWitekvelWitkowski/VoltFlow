@@ -92,5 +92,14 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             return ServiceResponse<ClientDTO>.Success(MapToDto(client));
    
         }
+
+        public async Task<ClientDTO?> GetByEmailAsync(string email, CancellationToken ct)
+        {
+            return await _context.Set<Client>()
+                .AsNoTracking()
+                .Where(c => c.Email == email)
+                .Select(c => MapToDto(c))
+                .FirstOrDefaultAsync(ct);
+        }
     }
 }

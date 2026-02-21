@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Enums;
 using VoltFlow.Service.Core.Models.ClientAddress.DTOs;
 using VoltFlow.Service.Core.Models.ClientAddress.Request;
 using VoltFlow.Service.Core.Models.Common;
@@ -37,8 +38,19 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                     IsObsolete = addressDto.IsObsolete
                 };
                 _context.Set<ClientAddress>().Add(newAddress);
+                var client = await _context.Set<Client>().FindAsync(new object[] { addressDto.ClientId }, ct);
 
-                   result = MapToDto(newAddress);
+                if (client == null)
+                {
+                    throw new KeyNotFoundException($"Client with Id {addressDto.ClientId} not found.");
+                }
+
+                if (client.statusClient != StatusClient.Active)
+                {
+                    client.statusClient = StatusClient.Active;
+                }
+
+                result = MapToDto(newAddress);
             }
             else
             {

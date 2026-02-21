@@ -10,7 +10,7 @@ namespace VoltFlow.Service.Core.Entities
         public string Phone { get; set; } = string.Empty;
         public int TenantId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public StatusClient statusClient { get; set; } = StatusClient.Active;
+        public StatusClient statusClient { get; set; } = StatusClient.NoCompoleted;
 
         // Relacje
         public ICollection<ClientAddress> Addresses { get; set; } = new List<ClientAddress>();

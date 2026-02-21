@@ -12,14 +12,12 @@ namespace VoltFlow.Service.Application.Services
     public class ClientService : IClientService
     {
         private readonly IClientRepository _clientRepository;
-        private readonly IClientAdressRepository _addressRepository;
         private readonly ILogger<ClientService> _logger;
 
-        public ClientService(IClientRepository clientRepository, ILogger<ClientService> logger, IClientAdressRepository addressRepository)
+        public ClientService(IClientRepository clientRepository, ILogger<ClientService> logger)
         {
             _clientRepository = clientRepository;
-            _logger = logger;
-            _addressRepository = addressRepository;
+            _logger = logger; 
         }
 
 
@@ -31,7 +29,7 @@ namespace VoltFlow.Service.Application.Services
                 return ServiceResponse<int>.Failure("User must have an email to create a client record.");
             }
 
-            if (user.Role.IdRole != 1 )
+            if (user.RoleId != 1 )
             {
                 _logger.LogWarning("User {UserId} has role {RoleId}, expected role 1 for client creation.", user.Id, user.Role.IdRole);
                 return ServiceResponse<int>.Failure("User does not have the correct role to create a client record.");
@@ -41,8 +39,9 @@ namespace VoltFlow.Service.Application.Services
             {
                 IdClient = user.Id,
                 Email = user.Email,
+                Name = user.Name,
                 CreatedAt = DateTime.UtcNow,
-                statusClient = StatusClient.Active
+                statusClient = StatusClient.NoCompoleted
             };
 
             try
