@@ -1,11 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 using System.Linq;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Models.Catalog.DTOs; // Zakładam taką przestrzeń nazw
+using VoltFlow.Service.Core.Models.Category.DTOs;
 using VoltFlow.Service.Core.Models.Common;
+using VoltFlow.Service.Infrastructure.Repositories;
 using VoltFlow.Service.Test.Integration.IntegrationTest;
 
 namespace VoltFlow.Service.Test.Integration.Controllers
@@ -14,6 +15,7 @@ namespace VoltFlow.Service.Test.Integration.Controllers
     {
         public CatalogIntegrationTests(IntegrationTestFactory factory) : base(factory)
         {
+
         }
 
         [Fact]

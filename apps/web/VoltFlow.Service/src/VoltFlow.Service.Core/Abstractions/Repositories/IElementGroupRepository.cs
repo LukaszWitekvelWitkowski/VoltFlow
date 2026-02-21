@@ -6,7 +6,7 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
     public interface IElementGroupRepository
     {
-        Task<ServiceResponse<ElementGroupsDTO>> GetElementGroupsQuery();
+        Task<ServiceResponse<ElementGroupCacheDTO>> GetElementGroupsQuery();
         Task<ServiceResponse<ElementGroupDTO>> GetElementGroupByIdQuery(int id);
         Task<ServiceResponse<PagedResultDTO<ElementGroupDTO>>> GetElementGroupSearchQuery(string? name, int page, int size);
         Task<ServiceResponse<ElementGroupDTO>> AddElementGroup(CreateElementGroupRequest request);

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Exceptions;
-using VoltFlow.Service.Core.Models.Category.DTOs;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.ElementGroup.DTOs;
 using VoltFlow.Service.Core.Models.ElementGroup.Request;
@@ -12,42 +11,13 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class ElementGroupRepository : BaseRepository, IElementGroupRepository
+    public class ElementGroupRepository : CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, ElementGroup>, IElementGroupRepository
     {
-        private ElementGroupsDTO? _cache;
-
         public ElementGroupRepository(VoltFlowDbContext context, IConfiguration configuration) : base(context, configuration)
         {
         }
 
-        private async Task<ElementGroupsDTO> GetOrUpdateCacheAsync()
-        {
-            if (!_isCacheEnabled) return null!;
-            if (_cache != null) return _cache;
-
-            await _lock.WaitAsync();
-            try
-            {
-                if (_cache == null)
-                {
-                    var count = await _context.Set<ElementGroup>().CountAsync();
-                    if (count > _maxCacheThreshold)
-                    {
-                        _isCacheEnabled = false;
-                        return null!;
-                    }
-
-                    var data = await FetchFromDbInternal();
-                    _cache = new ElementGroupsDTO(data);
-                }
-                return _cache;
-            }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-
+      
         public async Task<ServiceResponse<ElementGroupDTO>> AddElementGroup(CreateElementGroupRequest request)
         {
             // Sprawdzamy czy kategoria istnieje (szybki AnyAsync)
@@ -68,7 +38,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             await _context.SaveChangesAsync();
 
             // Inwalidacja cache
-            _cache = null;
+            ResetStaticCache();
 
             return ServiceResponse<ElementGroupDTO>.Success(MapToDto(newGroup));
         }
@@ -94,7 +64,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             await _context.SaveChangesAsync();
 
             // Inwalidacja cache
-            _cache = null;
+            ResetStaticCache();
 
             return ServiceResponse<ElementGroupDTO>.Success(MapToDto(elementGroup));
         }
@@ -104,7 +74,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             var cache = await GetOrUpdateCacheAsync();
             if (cache != null)
             {
-                var item = cache.ElementGroups.FirstOrDefault(eg => eg.IdElementGroup == id);
+                var item = cache.Items.FirstOrDefault(eg => eg.IdElementGroup == id);
                 if (item == null) throw new NotFoundException($"Grupa elementów o ID {id} nie istnieje.");
 
                 return ServiceResponse<ElementGroupDTO>.Result(item);
@@ -126,7 +96,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             if (cache != null)
             {
                 // Używamy PagedHelper dla danych z cache
-                var sourceResponse = ServiceResponse<IEnumerable<ElementGroupDTO>>.Result(cache.ElementGroups);
+                var sourceResponse = ServiceResponse<IEnumerable<ElementGroupDTO>>.Result(cache.Items);
 
                 return PagedHelper.ToPagedResponse(
                     sourceResponse,
@@ -157,13 +127,13 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 new PagedResultDTO<ElementGroupDTO>(dbItems, dbTotal, page, size));
         }
 
-        public async Task<ServiceResponse<ElementGroupsDTO>> GetElementGroupsQuery()
+        public async Task<ServiceResponse<ElementGroupCacheDTO>> GetElementGroupsQuery()
         {
             var cache = await GetOrUpdateCacheAsync();
-            if (cache != null) return ServiceResponse<ElementGroupsDTO>.Result(cache);
+            if (cache != null) return ServiceResponse<ElementGroupCacheDTO>.Result(cache);
 
             var data = await FetchFromDbInternal();
-            return ServiceResponse<ElementGroupsDTO>.Result(new ElementGroupsDTO(data));
+            return ServiceResponse<ElementGroupCacheDTO>.Result(new ElementGroupCacheDTO() {Items = data });
         }
 
         public async Task<bool> IsExists(string name, int? id = null)
@@ -173,7 +143,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             if (cache != null)
             {
-                return cache.ElementGroups.Any(eg => (id == null || eg.IdElementGroup != id)
+                return cache.Items.Any(eg => (id == null || eg.IdElementGroup != id)
                                                      && eg.Name.ToLower() == normalizedName);
             }
 
@@ -182,15 +152,9 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                                 && eg.Name.ToLower() == normalizedName);
         }
 
-        private async Task<IEnumerable<ElementGroupDTO>> FetchFromDbInternal()
-        {
-            return await _context.Set<ElementGroup>()
-                .AsNoTracking()
-                .Select(eg => MapToDto(eg))
-                .ToListAsync();
-        }
-
-        private static ElementGroupDTO MapToDto(ElementGroup eg) => new ElementGroupDTO
+      
+        override
+        public ElementGroupDTO MapToDto(ElementGroup eg) => new ElementGroupDTO
         {
             IdElementGroup = eg.IdElementGroup,
             Name = eg.Name,

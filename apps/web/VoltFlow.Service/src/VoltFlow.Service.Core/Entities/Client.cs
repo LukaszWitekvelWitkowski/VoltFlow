@@ -1,4 +1,6 @@
-﻿namespace VoltFlow.Service.Core.Entities
+﻿using VoltFlow.Service.Core.Enums;
+
+namespace VoltFlow.Service.Core.Entities
 {
     public class Client
     {
@@ -7,6 +9,8 @@
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public int TenantId { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public StatusClient statusClient { get; set; } = StatusClient.NoCompoleted;
 
         // Relacje
         public ICollection<ClientAddress> Addresses { get; set; } = new List<ClientAddress>();

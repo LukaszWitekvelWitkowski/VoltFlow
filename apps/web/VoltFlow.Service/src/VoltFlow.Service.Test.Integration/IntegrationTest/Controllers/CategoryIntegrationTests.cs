@@ -12,6 +12,7 @@ using VoltFlow.Service.Core.Models.Category.DTOs;
 using VoltFlow.Service.Core.Models.Category.Request;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Infrastructure.Data;
+using VoltFlow.Service.Infrastructure.Repositories;
 
 namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
     {
@@ -24,6 +25,8 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
             {
                 _factory = factory;
                 _client = factory.CreateClient();
+                CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
+
             }
 
             #region GET Tests
@@ -31,17 +34,18 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
             [Fact]
         public async Task GetCategories_ShouldReturnAllCategories()
         {
+            CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
             // Arrange
             DbContext.categories.AddRange(new Category { Name = "Cat 1" }, new Category { Name = "Cat 2" });
             await DbContext.SaveChangesAsync();
 
             // Act
             var response = await Client.GetAsync("/api/category");
-            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<CategoriesDTO>>();
+            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<CategoryCacheDTO>>();
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(2, result._Data.Categories.Count());
+            Assert.Equal(2, result._Data.Items.Count());
         }
 
         [Fact]
@@ -56,6 +60,7 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
         [Fact]
         public async Task GetCategorySearch_ShouldReturnFilteredResults_WithPagination()
         {
+            CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
             // 1. Arrange - Dodajemy dane bezpośrednio przez DbContext z klasy bazowej
             DbContext.categories.AddRange(
                 new Category { Name = "Electronics" },

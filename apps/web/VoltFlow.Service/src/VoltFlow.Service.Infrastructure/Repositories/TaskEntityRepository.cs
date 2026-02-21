@@ -12,43 +12,14 @@ using VoltFlow.Service.Infrastructure.Data;
 
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
-    public class TaskEntityRepository : BaseRepository, ITaskEntityRepository
+    public class TaskEntityRepository : CacheRepository<TaskEntitiesDTO, TaskEntityDTO, TaskEntity>, ITaskEntityRepository
     {
-        private TaskEntitiesDTO? _cache;
-
         public TaskEntityRepository(VoltFlowDbContext context, IConfiguration configuration)
             : base(context, configuration)
         {
         }
 
-        private async Task<TaskEntitiesDTO> GetOrUpdateCacheAsync()
-        {
-            if (!_isCacheEnabled) return null!;
-            if (_cache != null) return _cache;
-
-            await _lock.WaitAsync();
-            try
-            {
-                if (_cache == null)
-                {
-                    var count = await _context.Set<TaskEntity>().CountAsync();
-                    if (count > _maxCacheThreshold)
-                    {
-                        _isCacheEnabled = false;
-                        return null!;
-                    }
-
-                    var data = await FetchFromDbInternal();
-                    _cache = new TaskEntitiesDTO(data);
-                }
-                return _cache;
-            }
-            finally
-            {
-                _lock.Release();
-            }
-        }
-
+     
         public async Task<ServiceResponse<TaskEntityDTO>> AddTaskEntity(CreateTaskEntityRequest request)
         {
             var entity = new TaskEntity
@@ -62,7 +33,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             await _context.SaveChangesAsync();
 
             // Inwalidacja cache
-            _cache = null;
+            ResetStaticCache();
 
             return ServiceResponse<TaskEntityDTO>.Success(MapToDto(entity));
         }
@@ -73,7 +44,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             if (cache != null) return ServiceResponse<TaskEntitiesDTO>.Result(cache);
 
             var data = await FetchFromDbInternal();
-            return ServiceResponse<TaskEntitiesDTO>.Result(new TaskEntitiesDTO(data));
+            return ServiceResponse<TaskEntitiesDTO>.Result(new TaskEntitiesDTO() { Items = data });
         }
 
         public async Task<ServiceResponse<TaskEntityDTO>> GetTaskEntityByIdQuery(int id)
@@ -81,7 +52,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             var cache = await GetOrUpdateCacheAsync();
             if (cache != null)
             {
-                var item = cache.TaskEntities.FirstOrDefault(t => t.IdTask == id);
+                var item = cache.Items.FirstOrDefault(t => t.IdTask == id);
                 return ServiceResponse<TaskEntityDTO>.Result(item);
             }
 
@@ -98,7 +69,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             if (cache != null)
             {
-                var sourceResponse = ServiceResponse<IEnumerable<TaskEntityDTO>>.Result(cache.TaskEntities);
+                var sourceResponse = ServiceResponse<IEnumerable<TaskEntityDTO>>.Result(cache.Items);
 
                 return PagedHelper.ToPagedResponse(
                     sourceResponse,
@@ -139,7 +110,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             entity.TypeTask = request.TypeTask;
 
             await _context.SaveChangesAsync();
-            _cache = null;
+            ResetStaticCache();
 
             return ServiceResponse<TaskEntityDTO>.Success(MapToDto(entity));
         }
@@ -151,7 +122,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             if (cache != null)
             {
-                return cache.TaskEntities.Any(t => t.IdTask != excludeId
+                return cache.Items.Any(t => t.IdTask != excludeId
                                                  && t.TypeTask == type
                                                  && t.Description.ToLower() == normalizedDesc);
             }
@@ -162,15 +133,9 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                                && t.Description.ToLower() == normalizedDesc);
         }
 
-        private async Task<List<TaskEntityDTO>> FetchFromDbInternal()
-        {
-            return await _context.Set<TaskEntity>()
-                .AsNoTracking()
-                .Select(t => MapToDto(t))
-                .ToListAsync();
-        }
-
-        private static TaskEntityDTO MapToDto(TaskEntity t) => new TaskEntityDTO
+      
+        override
+        public TaskEntityDTO MapToDto(TaskEntity t) => new TaskEntityDTO
         {
             IdTask = t.IdTask,
             Description = t.Description,

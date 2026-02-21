@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
 using VoltFlow.Service.Application.Commands.Auth;
 using VoltFlow.Service.Core.Entities;
-using VoltFlow.Service.Core.Models.Auth;
+using VoltFlow.Service.Core.Models.Auth.Request;
 using VoltFlow.Service.Infrastructure.Data;
 using VoltFlow.Service.Infrastructure.Handlers.Auth;
 

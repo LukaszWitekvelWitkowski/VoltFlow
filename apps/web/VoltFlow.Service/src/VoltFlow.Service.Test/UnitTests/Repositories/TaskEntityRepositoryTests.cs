@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using VoltFlow.Service.Core.Entities;
 using VoltFlow.Service.Core.Enums;
+using VoltFlow.Service.Core.Models.TaskEntity.DTOs;
 using VoltFlow.Service.Core.Models.TaskEntity.Request;
 using VoltFlow.Service.Infrastructure.Repositories;
 
@@ -41,6 +39,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetTaskEntitySearchQuery_ShouldFilterByDescription()
         {
+            CacheRepository<TaskEntitiesDTO, TaskEntityDTO, TaskEntity>.ResetStaticCache();
             // Arrange
             var tasks = new List<TaskEntity>
             {
@@ -81,7 +80,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var updatedResult = await _repository.GetTaskEntitiesQuery();
 
             // Assert
-            var updatedItem = updatedResult._Data!.TaskEntities.First(t => t.IdTask == 5);
+            var updatedItem = updatedResult._Data!.Items.First(t => t.IdTask == 5);
             Assert.Equal("New Desc", updatedItem.Description);
             Assert.Equal(WorkItemStatus.ToDo, updatedItem.Status);
         }
@@ -89,6 +88,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task IsExists_ShouldCheckDescriptionAndType()
         {
+            CacheRepository<TaskEntitiesDTO, TaskEntityDTO, TaskEntity>.ResetStaticCache();
             // Arrange
             var task = new TaskEntity { IdTask = 1, Description = "Test", TypeTask = TaskEntityType.Installation };
             await SeedDataAsync(new[] { task });
@@ -110,6 +110,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetTaskEntityByIdQuery_ShouldReturnNull_WhenEntityDoesNotExist()
         {
+            CacheRepository<TaskEntitiesDTO, TaskEntityDTO, TaskEntity>.ResetStaticCache();
             // Arrange
 
             // Act
@@ -122,6 +123,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task GetTaskEntityByIdQuery_ShouldReturnNull_WhenTaskNotFound()
         {
+            CacheRepository<TaskEntitiesDTO, TaskEntityDTO, TaskEntity>.ResetStaticCache();
             // Act
             var result = await _repository.GetTaskEntityByIdQuery(99999);
 
@@ -132,6 +134,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
         [Fact]
         public async Task IsExists_ShouldReturnFalse_WhenSearchingWithEmptyString()
         {
+            CacheRepository<TaskEntitiesDTO, TaskEntityDTO, TaskEntity>.ResetStaticCache();
             // Act
             var exists = await _repository.IsExists("", TaskEntityType.Installation);
 

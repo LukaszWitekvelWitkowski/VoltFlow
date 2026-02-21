@@ -7,7 +7,7 @@ using VoltFlow.Service.Core.Models.Validators;
 
 namespace VoltFlow.Service.Infrastructure.Handlers.Category
 {
-    public class GetCategoriesHandlers : IRequestHandler<GetCategoriesQuery, ServiceResponse<CategoriesDTO>>
+    public class GetCategoriesHandlers : IRequestHandler<GetCategoriesQuery, ServiceResponse<CategoryCacheDTO>>
     {
         private readonly ICategoryRepository _categoryRepository;
         public GetCategoriesHandlers(ICategoryRepository categoryRepository)
@@ -15,7 +15,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Category
             _categoryRepository = categoryRepository;
         }
 
-        public async Task<ServiceResponse<CategoriesDTO>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
+        public async Task<ServiceResponse<CategoryCacheDTO>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
         {
             return ResponseValidator.EnsureSuccessAndData(await _categoryRepository.GetCategoriesQuery(), "Categories");
         }

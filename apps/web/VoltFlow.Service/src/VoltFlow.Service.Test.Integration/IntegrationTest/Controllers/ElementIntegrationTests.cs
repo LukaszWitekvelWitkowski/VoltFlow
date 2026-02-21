@@ -5,9 +5,12 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Models.Category.DTOs;
 using VoltFlow.Service.Core.Models.Common;
 using VoltFlow.Service.Core.Models.Element.DTOs;
 using VoltFlow.Service.Core.Models.Element.Request;
+using VoltFlow.Service.Core.Models.ElementGroup.DTOs;
+using VoltFlow.Service.Infrastructure.Repositories;
 
 namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
 {
@@ -93,15 +96,19 @@ namespace VoltFlow.Service.Test.Integration.IntegrationTest.Controllers
 
             // ZMIANA: Zamiast IEnumerable<ElementDTO>, użyj klasy ElementsDTO 
             // (lub sprawdź, co dokładnie zwraca Twój GetElementsQueryHandler)
-            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<ElementsDTO>>();
+            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<ElementCacheDTO>>();
 
             Assert.NotNull(result?._Data);
-            Assert.True(result._Data.Elements.Count() >= 2);
+            Assert.True(result._Data.Items.Count() >= 2);
         }
 
         [Fact]
         public async Task UpdateElement_ShouldModifyName()
         {
+            CacheRepository<CategoryCacheDTO, CategoryDTO, Category>.ResetStaticCache();
+            CacheRepository<ElementGroupCacheDTO, ElementGroupDTO, Element>.ResetStaticCache();
+            CacheRepository<ElementCacheDTO, ElementDTO, Element>.ResetStaticCache();
+
             // Arrange
             var groupId = await CreateHierarchyAndGetGroupIdAsync();
             var element = new Element { Name = "Old Name", ElementGroupId = groupId };

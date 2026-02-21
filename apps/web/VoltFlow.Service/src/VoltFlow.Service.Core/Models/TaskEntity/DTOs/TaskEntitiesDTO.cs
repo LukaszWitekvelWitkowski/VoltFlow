@@ -1,17 +1,14 @@
-﻿namespace VoltFlow.Service.Core.Models.TaskEntity.DTOs
-{
-    public class TaskEntitiesDTO
-    {
-        public IEnumerable<TaskEntityDTO> TaskEntities { get; set; }
+﻿using VoltFlow.Service.Core.Abstractions.Generic;
 
-        public TaskEntitiesDTO(IEnumerable<TaskEntityDTO>? taskEntities)
+namespace VoltFlow.Service.Core.Models.TaskEntity.DTOs
+{
+    public class TaskEntitiesDTO : ICacheData<TaskEntityDTO>
+    {
+        public IEnumerable<TaskEntityDTO> Items { get; set; } = new List<TaskEntityDTO>();
+
+        public void insert(IEnumerable<TaskEntityDTO> enumerable)
         {
-            if (taskEntities is null)
-            {
-                TaskEntities = new List<TaskEntityDTO>();
-                return;
-            }
-            TaskEntities = taskEntities;
+          Items = enumerable;
         }
     }
 }
