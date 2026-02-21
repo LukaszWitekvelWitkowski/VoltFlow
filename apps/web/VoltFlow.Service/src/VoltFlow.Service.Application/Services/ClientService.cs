@@ -35,6 +35,13 @@ namespace VoltFlow.Service.Application.Services
                 return ServiceResponse<int>.Failure("User does not have the correct role to create a client record.");
             }
 
+            var existingClient = await _clientRepository.GetByEmailAsync(user.Email, ct);
+            if (existingClient != null) {
+
+                _logger.LogInformation("Client record already exists for user {UserId} with email {Email}.", user.Id, user.Email);
+                return ServiceResponse<int>.Success(existingClient.IdClient);
+            }
+
             var newClient = new Client
             {
                 IdClient = user.Id,
