@@ -20,7 +20,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         }
 
      
-        public async Task<ServiceResponse<TaskEntityDTO>> AddTaskEntity(CreateTaskEntityRequest request)
+        public async Task<TaskEntityDTO> AddTaskEntity(CreateTaskEntityRequest request)
         {
             var entity = new TaskEntity
             {
@@ -35,44 +35,42 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             // Inwalidacja cache
             ResetStaticCache();
 
-            return ServiceResponse<TaskEntityDTO>.Success(MapToDto(entity));
+            return MapToDto(entity);
         }
 
-        public async Task<ServiceResponse<TaskEntitiesDTO>> GetTaskEntitiesQuery()
+        public async Task<TaskEntitiesDTO> GetTaskEntitiesQuery()
         {
             var cache = await GetOrUpdateCacheAsync();
-            if (cache != null) return ServiceResponse<TaskEntitiesDTO>.Result(cache);
+            if (cache != null) return cache;
 
             var data = await FetchFromDbInternal();
-            return ServiceResponse<TaskEntitiesDTO>.Result(new TaskEntitiesDTO() { Items = data });
+            return new TaskEntitiesDTO() { Items = data };
         }
 
-        public async Task<ServiceResponse<TaskEntityDTO>> GetTaskEntityByIdQuery(int id)
+        public async Task<TaskEntityDTO?> GetTaskEntityByIdQuery(int id)
         {
             var cache = await GetOrUpdateCacheAsync();
             if (cache != null)
             {
-                var item = cache.Items.FirstOrDefault(t => t.IdTask == id);
-                return ServiceResponse<TaskEntityDTO>.Result(item);
+                return cache.Items.FirstOrDefault(t => t.IdTask == id);
             }
 
-            var entity = await _context.Set<TaskEntity>()
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.IdTask == id);
-
-            return ServiceResponse<TaskEntityDTO>.Result(MapToDto(entity));
+           return await _context.Set<TaskEntity>()
+                                .AsNoTracking()
+                                .Where(t => t.IdTask == id)
+                                .Select(t => MapToDto(t))
+                                .FirstOrDefaultAsync();
         }
 
-        public async Task<ServiceResponse<PagedResultDTO<TaskEntityDTO>>> GetTaskEntitySearchQuery(string? name, int page, int size)
+        public async Task<PagedResultDTO<TaskEntityDTO>> GetTaskEntitySearchQuery(string? name, int page, int size)
         {
             var cache = await GetOrUpdateCacheAsync();
 
             if (cache != null)
             {
-                var sourceResponse = ServiceResponse<IEnumerable<TaskEntityDTO>>.Result(cache.Items);
 
                 return PagedHelper.ToPagedResponse(
-                    sourceResponse,
+                    cache,
                     name,
                     t => t.Description, // Wybieramy pole do filtrowania
                     page,
@@ -96,11 +94,10 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 .Select(t => MapToDto(t))
                 .ToListAsync();
 
-            return ServiceResponse<PagedResultDTO<TaskEntityDTO>>.Result(
-                new PagedResultDTO<TaskEntityDTO>(dbItems, dbTotalCount, page, size));
+            return new PagedResultDTO<TaskEntityDTO>(dbItems, dbTotalCount, page, size);
         }
 
-        public async Task<ServiceResponse<TaskEntityDTO>> UpdateTaskEntity(UpdateTaskEntityRequest request)
+        public async Task<TaskEntityDTO> UpdateTaskEntity(UpdateTaskEntityRequest request)
         {
             var entity = await _context.Set<TaskEntity>().FindAsync(request.IdTask);
             if (entity == null) throw new NotFoundException("Nie znaleziono zadania.");
@@ -112,7 +109,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             ResetStaticCache();
 
-            return ServiceResponse<TaskEntityDTO>.Success(MapToDto(entity));
+            return MapToDto(entity);
         }
 
         public async Task<bool> IsExists(string description, TaskEntityType type, int? excludeId = null)

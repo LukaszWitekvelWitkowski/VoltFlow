@@ -1,27 +1,21 @@
-﻿using VoltFlow.Service.Core.Models.Common;
+﻿using VoltFlow.Service.Core.Abstractions.Generic;
+using VoltFlow.Service.Core.Models.Common;
 
 namespace VoltFlow.Service.Core.Pagination
 {
     public static class PagedHelper
     {
-        public static ServiceResponse<PagedResultDTO<T>> ToPagedResponse<T>(
-            ServiceResponse<IEnumerable<T>> sourceResponse,
+        public static PagedResultDTO<T> ToPagedResponse<T>(
+            ICacheData<T> cache,
             string? filterValue,
             Func<T, string?> filterPropertySelector,
             int pageNumber,
-            int pageSize)
+            int pageSize) where T : class
         {
+            if (cache?.Items == null) return new PagedResultDTO<T>(new List<T>(), 0, pageNumber, pageSize);
 
-           // 1. Source Validation
-            if (!sourceResponse._IsSuccess)
-            {
-                return ServiceResponse<PagedResultDTO<T>>.Failure(sourceResponse._Message, sourceResponse._StatusCode);
-            }
+            var query = cache.Items.AsEnumerable();
 
-            var query = sourceResponse._Data?.AsEnumerable() ?? Enumerable.Empty<T>();
-
-
-            // 2. Dynamic filtering (Like)
             if (!string.IsNullOrWhiteSpace(filterValue))
             {
                 query = query.Where(item =>
@@ -31,17 +25,13 @@ namespace VoltFlow.Service.Core.Pagination
                 });
             }
 
-            // 3. Calculations
             int totalCount = query.Count();
             var items = query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            // 4. Result
-            var pagedData = new PagedResultDTO<T> (items, totalCount, pageNumber, pageSize);
-
-            return ServiceResponse<PagedResultDTO<T>>.Result(pagedData);
+            return new PagedResultDTO<T>(items, totalCount, pageNumber, pageSize);
         }
     }
-}
+ }

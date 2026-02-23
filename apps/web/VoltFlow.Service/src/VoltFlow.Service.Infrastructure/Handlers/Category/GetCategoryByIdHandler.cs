@@ -16,7 +16,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Category
         }
         public async Task<ServiceResponse<CategoryDTO>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
         {
-            return ResponseValidator.EnsureSuccessAndData(await _categoryRepository.GetCategoryByIdQuery(request.Id), "Categories");
+            return await ResponseValidator.ExecuteAsync(async() => await _categoryRepository.GetCategoryByIdQuery(request.Id), "Categories");
         }
     }
 }

@@ -16,43 +16,57 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         {
         }
 
-        public async Task<ServiceResponse<PagedResultDTO<ElementTreeDTO>>> GetCatalogSearchQuery(CatalogSearchRequest request)
+        public async Task<PagedResultDTO<ElementTreeDTO>> GetCatalogSearchQuery(CatalogSearchRequest request)
         {
-            // 1. Budujemy zapytanie (IQueryable - jeszcze nie jedzie do bazy)
+
             var query = _context.Set<Element>()
                 .AsNoTracking()
                 .AsQueryable();
 
-            // 2. Filtrowanie PO STRONIE SQL
+
             if (request != null)
             {
-                // Filtracja po Elemencie
+                // Sprawdzamy raz, czy działamy na Postgresie, żeby nie powtarzać tego w każdym IF-ie
+                bool isNpgsql = _context.Database.IsNpgsql();
+
+                // Filtracja po Elementach
                 if (request.ElementId.HasValue)
                     query = query.Where(e => e.IdElement == request.ElementId);
 
                 if (!string.IsNullOrWhiteSpace(request.ElementName))
-                    query = query.Where(e => e.Name.ToLower().Contains(request.ElementName.ToLower()));
+                {
+                    query = isNpgsql
+                        ? query.Where(e => EF.Functions.ILike(e.Name, $"%{request.ElementName}%"))
+                        : query.Where(e => e.Name.ToLower().Contains(request.ElementName.ToLower()));
+                }
 
                 // Filtracja po Grupie
                 if (request.ElementGroupId.HasValue)
                     query = query.Where(e => e.ElementGroupId == request.ElementGroupId);
 
                 if (!string.IsNullOrWhiteSpace(request.ElementGroupName))
-                    query = query.Where(e => e.ElementGroup.Name.ToLower().Contains(request.ElementGroupName.ToLower()));
+                {
+                    query = isNpgsql
+                        ? query.Where(e => EF.Functions.ILike(e.ElementGroup.Name, $"%{request.ElementGroupName}%"))
+                        : query.Where(e => e.ElementGroup.Name.ToLower().Contains(request.ElementGroupName.ToLower()));
+                }
 
-                // Filtracja po Kategorii
+                // Filtracja po kategorii
                 if (request.CategoryId.HasValue)
                     query = query.Where(e => e.ElementGroup.CategoryId == request.CategoryId);
 
                 if (!string.IsNullOrWhiteSpace(request.CategoryName))
-                    query = query.Where(e => e.ElementGroup.Category.Name.ToLower().Contains(request.CategoryName.ToLower()));
+                {
+                    query = isNpgsql
+                        ? query.Where(e => EF.Functions.ILike(e.ElementGroup.Category.Name, $"%{request.CategoryName}%"))
+                        : query.Where(e => e.ElementGroup.Category.Name.ToLower().Contains(request.CategoryName.ToLower()));
+                }
             }
 
-            // 3. Liczymy rekordy spełniające kryteria (w SQL)
+
             var totalCount = await query.CountAsync();
 
-            // 4. Paginacja i Projekcja (Select) w jednym zapytaniu SQL
-            // Projection (Select) sprawia, że Include/ThenInclude są zbędne - EF sam wygeneruje Joina
+        
             var items = await query
                 .OrderBy(e => e.Name)
                 .Skip((request.PageNumber - 1) * request.PageSize)
@@ -74,9 +88,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 })
                 .ToListAsync();
 
-            var pagedResult = new PagedResultDTO<ElementTreeDTO>(items, totalCount, request.PageNumber, request.PageSize);
-
-            return ServiceResponse<PagedResultDTO<ElementTreeDTO>>.Result(pagedResult);
+            return new PagedResultDTO<ElementTreeDTO>(items, totalCount, request.PageNumber, request.PageSize);
         }
     }
 }

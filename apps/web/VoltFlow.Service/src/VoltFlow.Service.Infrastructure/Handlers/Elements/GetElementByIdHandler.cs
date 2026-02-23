@@ -18,7 +18,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.Elements
 
         public async Task<ServiceResponse<ElementDTO>> Handle(GetElementByIdQuery request, CancellationToken cancellationToken)
         {
-            return ResponseValidator.EnsureSuccessAndData(await _elementRepository.GetElementByIdQuery(request.Id), "Element");
+            return await ResponseValidator.ExecuteAsync( async () => await _elementRepository.GetElementByIdQuery(request.Id), "Element");
         }
     }
 }

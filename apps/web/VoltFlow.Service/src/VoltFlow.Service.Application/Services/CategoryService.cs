@@ -24,7 +24,7 @@ namespace VoltFlow.Service.Application.Services
 
             // 3. Save
             var result = await _categoryRepository.AddCategory(name);
-            return ServiceResponse<CategoryDTO>.Success(result._Data!);
+            return ServiceResponse<CategoryDTO>.Success(result);
         }
 
         public async Task<ServiceResponse<CategoryDTO>> UpdateCategory(UpdateCategoryRequest request)
@@ -34,7 +34,7 @@ namespace VoltFlow.Service.Application.Services
                 throw new ValidationEntityException("Nazwa kategorii nie może być pusta.");
 
             // 2. Get the current state (The repository should throw an error or return null)
-            var currentCategory = (await _categoryRepository.GetCategoryByIdQuery(request.Id))._Data
+            var currentCategory = (await _categoryRepository.GetCategoryByIdQuery(request.Id))
                                   ?? throw new NotFoundException("Kategoria nie istnieje.");
 
             // 3. Checking if data has changed (Idempotence)
@@ -48,7 +48,7 @@ namespace VoltFlow.Service.Application.Services
 
             // 5. Update
             var updated = await _categoryRepository.UpdateCategory(request);
-            return ServiceResponse<CategoryDTO>.Success(updated._Data!);
+            return ServiceResponse<CategoryDTO>.Success(updated);
         }
 
         #region Private Helper Methods

@@ -51,7 +51,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
 
             _repoMock.Setup(r => r.IsExists("New Element", null)).ReturnsAsync(false);
             _repoMock.Setup(r => r.AddElement(request))
-                     .ReturnsAsync(ServiceResponse<ElementDTO>.Result(expectedDto));
+                     .ReturnsAsync(expectedDto);
 
             // Act
             var result = await _service.CreateElement(request);
@@ -75,7 +75,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             var currentDto = new ElementDTO { IdElement = 1, Name = "Relay", ElementGroupId = 1, Description = null };
 
             _repoMock.Setup(r => r.GetElementByIdQuery(1))
-                     .ReturnsAsync(ServiceResponse<ElementDTO>.Result(currentDto));
+                     .ReturnsAsync(currentDto);
 
             // Act
             var result = await _service.UpdateElement(request);
@@ -93,10 +93,10 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             var currentDto = new ElementDTO { IdElement = 1, Name = "Relay", ElementGroupId = 1, Description = "Old Desc" };
 
             _repoMock.Setup(r => r.GetElementByIdQuery(1))
-                     .ReturnsAsync(ServiceResponse<ElementDTO>.Result(currentDto));
+                     .ReturnsAsync(currentDto);
             _repoMock.Setup(r => r.IsExists("Relay", 1)).ReturnsAsync(false);
             _repoMock.Setup(r => r.UpdateElement(request))
-                     .ReturnsAsync(ServiceResponse<ElementDTO>.Result(new ElementDTO { IdElement = 1, Description = "New Desc" }));
+                     .ReturnsAsync(new ElementDTO { IdElement = 1, Description = "New Desc" });
 
             // Act
             var result = await _service.UpdateElement(request);
@@ -112,7 +112,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             // Arrange
             var request = new UpdateElementRequest { Id = 404, Name = "Missing" };
             _repoMock.Setup(r => r.GetElementByIdQuery(404))
-                     .ReturnsAsync(ServiceResponse<ElementDTO>.Result(null!));
+                     .ReturnsAsync((ElementDTO)null!);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateElement(request));

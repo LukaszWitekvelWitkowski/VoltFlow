@@ -17,7 +17,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         { }
   
       
-        public async Task<ServiceResponse<ElementDTO>> AddElement(CreateElementRequest request)
+        public async Task<ElementDTO> AddElement(CreateElementRequest request)
         {
 
             var elemntGroupExists = await _context.Set<ElementGroup>()
@@ -39,36 +39,34 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             _cache = null;
 
-            return ServiceResponse<ElementDTO>.Success(MapToDto(newElement));
+            return MapToDto(newElement);
         }
 
-        public async Task<ServiceResponse<ElementCacheDTO>> GetElementsQuery()
+        public async Task<ElementCacheDTO> GetElementsQuery()
         {
             var cache = await GetOrUpdateCacheAsync();
 
             if (cache != null)
-                return ServiceResponse<ElementCacheDTO>.Result(cache);
+                return cache;
 
             var dbData = await FetchFromDbInternal();
-            return ServiceResponse<ElementCacheDTO>.Result(new ElementCacheDTO { Items = dbData });
+            return new ElementCacheDTO { Items = dbData };
         }
 
-        public async Task<ServiceResponse<ElementDTO>> GetElementByIdQuery(int id)
+        public async Task<ElementDTO?> GetElementByIdQuery(int id)
         {
             var cache = await GetOrUpdateCacheAsync();
             if (cache != null)
             {
-                var item = cache.Items.FirstOrDefault(e => e.IdElement == id);
-                return ServiceResponse<ElementDTO>.Result(item!);
+                return cache.Items.FirstOrDefault(e => e.IdElement == id);
             }
 
-            var element = await _context.Set<Element>()
+            return await _context.Set<Element>()
                 .AsNoTracking()
                 .Where(e => e.IdElement == id)
                 .Select(e => MapToDto(e))
                 .FirstOrDefaultAsync();
 
-            return ServiceResponse<ElementDTO>.Result(element!);
         }
 
        
@@ -83,16 +81,14 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         };
 
 
-        public async Task<ServiceResponse<PagedResultDTO<ElementDTO>>> GetElementsPagedByNameQuery(string? name, int page, int size)
+        public async Task<PagedResultDTO<ElementDTO>> GetElementsPagedByNameQuery(string? name, int page, int size)
         {
             var cache = await GetOrUpdateCacheAsync();
 
             if (cache != null)
             {
-                var sourceResponse = ServiceResponse<IEnumerable<ElementDTO>>.Result(cache.Items);
-
                 return PagedHelper.ToPagedResponse(
-                    sourceResponse,
+                    cache,
                     name,
                     eg => eg.Name,
                     page,
@@ -117,12 +113,10 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 .Select(e => MapToDto(e))
                 .ToListAsync();
 
-            var dbPagedResult = new PagedResultDTO<ElementDTO>(dbItems, dbTotalCount, page, size);
-
-            return ServiceResponse<PagedResultDTO<ElementDTO>>.Result(dbPagedResult);
+            return new PagedResultDTO<ElementDTO>(dbItems, dbTotalCount, page, size);
         }
 
-        public async Task<ServiceResponse<ElementDTO>> UpdateElement(UpdateElementRequest request)
+        public async Task<ElementDTO> UpdateElement(UpdateElementRequest request)
         {
             // 1. Aktualizacja w bazie
             var element = await _context.Set<Element>()
@@ -140,7 +134,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             ResetStaticCache();
 
-            return ServiceResponse<ElementDTO>.Success(MapToDto(element));
+            return MapToDto(element);
         }
 
         public async Task<bool> IsExists(string name, int? id = null)

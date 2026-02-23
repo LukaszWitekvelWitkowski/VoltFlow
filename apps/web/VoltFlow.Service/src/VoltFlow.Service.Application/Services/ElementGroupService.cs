@@ -25,7 +25,7 @@ namespace VoltFlow.Service.Application.Services
 
             // 3. Save
             var result = await _elementGroupRepository.AddElementGroup(request);
-            return ServiceResponse<ElementGroupDTO>.Success(result._Data!);
+            return ServiceResponse<ElementGroupDTO>.Success(result!);
         }
 
         public async Task<ServiceResponse<ElementGroupDTO>> UpdateElementGroup(UpdateElementGroupRequest request)
@@ -35,7 +35,7 @@ namespace VoltFlow.Service.Application.Services
 
             // 1. Getting the current state
             var currentResponse = await _elementGroupRepository.GetElementGroupByIdQuery(request.IdElementGroup);
-            var currentGroup = currentResponse._Data ?? throw new NotFoundException("Grupa elementów nie istnieje.");
+            var currentGroup = currentResponse ?? throw new NotFoundException("Grupa elementów nie istnieje.");
 
             // 2. idempotence (whether the data has actually changed)
             if (IsDataUnchanged(currentGroup, request))
@@ -47,7 +47,7 @@ namespace VoltFlow.Service.Application.Services
 
             // 4. Update
             var updated = await _elementGroupRepository.UpdateElementGroup(request);
-            return ServiceResponse<ElementGroupDTO>.Success(updated._Data!);
+            return ServiceResponse<ElementGroupDTO>.Success(updated!);
         }
 
         #region Private Helper Methods

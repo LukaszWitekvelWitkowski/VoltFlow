@@ -16,7 +16,7 @@ namespace VoltFlow.Service.Infrastructure.Handlers.TaskEntity
         }
         public async Task<ServiceResponse<TaskEntitiesDTO>> Handle(GetTaskEntitiesQuery request, CancellationToken cancellationToken)
         {
-            return ResponseValidator.EnsureSuccessAndData(await _taskEntityRepository.GetTaskEntitiesQuery(), "Task Entity");
+            return await ResponseValidator.ExecuteAsync( async () => await _taskEntityRepository.GetTaskEntitiesQuery(), "Task Entity");
         }
     }
 }

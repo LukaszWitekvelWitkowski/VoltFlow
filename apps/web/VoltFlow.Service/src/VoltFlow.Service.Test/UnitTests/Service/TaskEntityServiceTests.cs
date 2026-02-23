@@ -46,7 +46,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             _taskRepoMock.Setup(r => r.IsExists(request.Description, request.TypeTask, null))
                          .ReturnsAsync(false);
             _taskRepoMock.Setup(r => r.AddTaskEntity(request))
-                         .ReturnsAsync(ServiceResponse<TaskEntityDTO>.Result(expectedDto));
+                         .ReturnsAsync(expectedDto);
 
             // Act
             var result = await _service.CreateTaskEntity(request);
@@ -82,7 +82,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             };
 
             _taskRepoMock.Setup(r => r.GetTaskEntityByIdQuery(5))
-                         .ReturnsAsync(ServiceResponse<TaskEntityDTO>.Result(currentDto));
+                         .ReturnsAsync(currentDto);
 
             // Act
             var result = await _service.UpdateTaskEntity(request);
@@ -99,7 +99,7 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             // Arrange
             var request = new UpdateTaskEntityRequest { IdTask = 999 };
             _taskRepoMock.Setup(r => r.GetTaskEntityByIdQuery(999))
-                         .ReturnsAsync(ServiceResponse<TaskEntityDTO>.Result(null!));
+                         .ReturnsAsync((TaskEntityDTO)null!);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateTaskEntity(request));
@@ -113,9 +113,9 @@ namespace VoltFlow.Service.Test.UnitTests.Service
             var currentDto = new TaskEntityDTO { IdTask = 1, Description = "Test", Status = WorkItemStatus.ToDo };
 
             _taskRepoMock.Setup(r => r.GetTaskEntityByIdQuery(1))
-                         .ReturnsAsync(ServiceResponse<TaskEntityDTO>.Result(currentDto));
+                         .ReturnsAsync(currentDto);
             _taskRepoMock.Setup(r => r.UpdateTaskEntity(request))
-                         .ReturnsAsync(ServiceResponse<TaskEntityDTO>.Result(new TaskEntityDTO { Status = WorkItemStatus.Done }));
+                         .ReturnsAsync(new TaskEntityDTO { Status = WorkItemStatus.Done });
 
             // Act
             var result = await _service.UpdateTaskEntity(request);

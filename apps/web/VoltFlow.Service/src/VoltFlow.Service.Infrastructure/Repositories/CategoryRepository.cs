@@ -18,18 +18,18 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         {
         }
 
-        public async Task<ServiceResponse<CategoryCacheDTO>> GetCategoriesQuery()
+        public async Task<CategoryCacheDTO> GetCategoriesQuery()
         {
 
 
             var cache = await GetOrUpdateCacheAsync();
-            if (cache != null) return ServiceResponse<CategoryCacheDTO>.Result(cache);
+            if (cache != null) return cache;
 
             var dbData = await FetchFromDbInternal();
-            return ServiceResponse<CategoryCacheDTO>.Result(new CategoryCacheDTO() { Items = dbData });
+            return new CategoryCacheDTO() { Items = dbData };
         }
 
-        public async Task<ServiceResponse<CategoryDTO>> GetCategoryByIdQuery(int id)
+        public async Task<CategoryDTO> GetCategoryByIdQuery(int id)
         {
             var cache = await GetOrUpdateCacheAsync();
             if (cache != null)
@@ -39,7 +39,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 // ZAMIAST: return ServiceResponse<CategoryDTO>.Result(item!);
                 if (item == null) throw new NotFoundException($"Kategoria o ID {id} nie istnieje.");
 
-                return ServiceResponse<CategoryDTO>.Result(item);
+                return item;
             }
 
             var category = await _context.Set<Category>()
@@ -51,17 +51,16 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             // TUTAJ RÓWNIEŻ:
             if (category == null) throw new NotFoundException($"Kategoria o ID {id} nie istnieje.");
 
-            return ServiceResponse<CategoryDTO>.Result(category);
+            return category;
         }
 
-        public async Task<ServiceResponse<PagedResultDTO<CategoryDTO>>> GetCategoriesPagedByNameQuery(string? name, int page, int size)
+        public async Task<PagedResultDTO<CategoryDTO>> GetCategoriesPagedByNameQuery(string? name, int page, int size)
         {
             var cache = await GetOrUpdateCacheAsync();
 
             if (cache != null)
             {
-                var sourceResponse = ServiceResponse<IEnumerable<CategoryDTO>>.Result(cache.Items);
-                return PagedHelper.ToPagedResponse(sourceResponse, name, c => c.Name, page, size);
+                return PagedHelper.ToPagedResponse(cache, name, c => c.Name, page, size);
             }
 
             // Fallback SQL
@@ -77,11 +76,10 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 .Skip((page - 1) * size).Take(size)
                 .Select(c => MapToDto(c)).ToListAsync();
 
-            return ServiceResponse<PagedResultDTO<CategoryDTO>>.Result(
-                new PagedResultDTO<CategoryDTO>(dbItems, dbTotal, page, size));
+            return new PagedResultDTO<CategoryDTO>(dbItems, dbTotal, page, size);
         }
 
-        public async Task<ServiceResponse<CategoryDTO>> AddCategory(string name)
+        public async Task<CategoryDTO> AddCategory(string name)
         {
             var newCategory = new Category
             {
@@ -94,10 +92,10 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             ResetStaticCache();
 
-            return ServiceResponse<CategoryDTO>.Success(MapToDto(newCategory));
+            return MapToDto(newCategory);
         }
 
-        public async Task<ServiceResponse<CategoryDTO>> UpdateCategory(UpdateCategoryRequest request)
+        public async Task<CategoryDTO> UpdateCategory(UpdateCategoryRequest request)
         {
             var category = await _context.Set<Category>()
                 .FirstOrDefaultAsync(c => c.IdCategory == request.Id);
@@ -112,7 +110,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             ResetStaticCache();
 
-            return ServiceResponse<CategoryDTO>.Success(MapToDto(category));
+            return MapToDto(category);
         }
 
         public async Task<bool> IsExists(string name, int? id = null)

@@ -8,6 +8,6 @@ namespace VoltFlow.Service.Core.Models.Client.DTOs
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
-        public StatusClient StatusClient { get; set; }
+        public ClientStatus StatusClient { get; set; }
     }
 }

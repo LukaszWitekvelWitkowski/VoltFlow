@@ -45,9 +45,9 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                     throw new KeyNotFoundException($"Client with Id {addressDto.ClientId} not found.");
                 }
 
-                if (client.statusClient != StatusClient.Active)
+                if (client.statusClient != ClientStatus.Active)
                 {
-                    client.statusClient = StatusClient.Active;
+                    client.statusClient = ClientStatus.Active;
                 }
 
                 result = MapToDto(newAddress);

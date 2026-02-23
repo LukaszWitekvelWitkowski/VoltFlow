@@ -22,13 +22,13 @@ namespace VoltFlow.Service.Application.Services
                 throw new ConflictException("Takie zadanie już istnieje.");
 
             var result = await _taskRepository.AddTaskEntity(request);
-            return ServiceResponse<TaskEntityDTO>.Success(result._Data!); // Repozytorium może nadal zwracać ServiceResponse dla spójności
+            return ServiceResponse<TaskEntityDTO>.Success(result); // Repozytorium może nadal zwracać ServiceResponse dla spójności
         }
 
         public async Task<ServiceResponse<TaskEntityDTO>> UpdateTaskEntity(UpdateTaskEntityRequest request)
         {
             // 1. Download (Repository will throw NotFound if it doesn't find it)
-            var current = (await _taskRepository.GetTaskEntityByIdQuery(request.IdTask))._Data
+            var current = (await _taskRepository.GetTaskEntityByIdQuery(request.IdTask))
                           ?? throw new NotFoundException("Zadanie nie istnieje.");
 
             // 2. Checking if it makes sense to update
@@ -40,7 +40,7 @@ namespace VoltFlow.Service.Application.Services
                 throw new ConflictException("Istnieje już inne zadanie o tym opisie.");
 
             var updated = await _taskRepository.UpdateTaskEntity(request);
-            return ServiceResponse<TaskEntityDTO>.Success(updated._Data!);
+            return ServiceResponse<TaskEntityDTO>.Success(updated);
         }
 
         private bool IsDataUnchanged(TaskEntityDTO c, UpdateTaskEntityRequest r) =>

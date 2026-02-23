@@ -134,7 +134,7 @@ namespace VoltFlow.Service.Test.UnitTests.Handlers
 
             // Mockujemy sukces serwisu klienta
             _clientServiceMock.Setup(x => x.CreateClientFromUserAsync(user, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ServiceResponse<int>.Success(100)); // Przykładowe ID klienta
+                .ReturnsAsync(100); // Przykładowe ID klienta
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);

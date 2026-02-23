@@ -6,12 +6,12 @@ namespace VoltFlow.Service.Core.Abstractions.Repositories
 {
     public interface ICategoryRepository
     {
-        Task<ServiceResponse<CategoryCacheDTO>> GetCategoriesQuery();
-        Task<ServiceResponse<CategoryDTO>> GetCategoryByIdQuery(int id);
-        Task<ServiceResponse<PagedResultDTO<CategoryDTO>>> GetCategoriesPagedByNameQuery(string? name, int page, int size);
+        Task<CategoryCacheDTO> GetCategoriesQuery();
+        Task<CategoryDTO> GetCategoryByIdQuery(int id);
+        Task<PagedResultDTO<CategoryDTO>> GetCategoriesPagedByNameQuery(string? name, int page, int size);
         Task<CategoryDTO> CategoryExistsByName(string name);
-        Task<ServiceResponse<CategoryDTO>> AddCategory(string categoryDto);
-        Task<ServiceResponse<CategoryDTO>> UpdateCategory(UpdateCategoryRequest request);
+        Task<CategoryDTO> AddCategory(string categoryDto);
+        Task<CategoryDTO> UpdateCategory(UpdateCategoryRequest request);
         Task<bool> IsExists(string name, int? id = null);
     }
 }

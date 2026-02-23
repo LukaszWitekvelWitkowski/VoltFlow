@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using VoltFlow.Service.Core.Abstractions.Repositories;
 using VoltFlow.Service.Core.Entities;
+using VoltFlow.Service.Core.Exceptions;
 using VoltFlow.Service.Core.Models.Client.DTOs;
 using VoltFlow.Service.Core.Models.Client.Requests;
 using VoltFlow.Service.Core.Models.Common;
@@ -34,15 +35,14 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             ResetStaticCache();
         }
 
-        public async Task<ServiceResponse<PagedResultDTO<ClientDTO>>> GetAllClientsAsync(string? email, int page, int size,CancellationToken ct)
+        public async Task<PagedResultDTO<ClientDTO>> GetAllClientsAsync(string? email, int page, int size,CancellationToken ct)
         {
             var cache = await GetOrUpdateCacheAsync();
 
             if (cache != null)
             {
-                var sourceResponse = ServiceResponse<IEnumerable<ClientDTO>>.Result(cache.Items);
                 return PagedHelper.ToPagedResponse(
-                  sourceResponse,
+                  cache,
                   email,
                   eg => eg.Email,
                   page,
@@ -66,19 +66,17 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                 .Select(e => MapToDto(e))
                 .ToListAsync();
 
-            var dbPagedResult = new PagedResultDTO<ClientDTO>(dbItems, dbTotalCount, page, size);
-
-            return ServiceResponse<PagedResultDTO<ClientDTO>>.Result(dbPagedResult);
+           return new PagedResultDTO<ClientDTO>(dbItems, dbTotalCount, page, size);
 
         }
 
-        public async Task<ServiceResponse<ClientDTO>> UpdateCleintAsync(ClientRequest request, CancellationToken ct)
+        public async Task<ClientDTO> UpdateCleintAsync(ClientRequest request, CancellationToken ct)
         {
            var client = await _context.Set<Client>().FindAsync(new object[] { request.IdClient }, ct);
 
-            if (string.IsNullOrEmpty(client.Email))
+            if (client == null || string.IsNullOrEmpty(client.Email))
             {
-                return ServiceResponse<ClientDTO>.Failure("Client must have an email to update profile.");
+                throw new NotFoundException("Client must have an email to update profile.");
             }
 
             client.Email = request.Email ?? client.Email;
@@ -89,7 +87,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             ResetStaticCache();
 
-            return ServiceResponse<ClientDTO>.Success(MapToDto(client));
+            return MapToDto(client);
    
         }
 

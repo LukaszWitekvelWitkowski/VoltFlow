@@ -24,8 +24,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetCatalogSearchQuery(request);
 
             // Assert
-            Assert.Equal(3, result._Data!.TotalCount);
-            var firstItem = result._Data.Results.First();
+            Assert.Equal(3, result.TotalCount);
+            var firstItem = result.Results.First();
             Assert.NotNull(firstItem.Group);
             Assert.NotNull(firstItem.Group.Category);
         }
@@ -46,8 +46,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetCatalogSearchQuery(request);
 
             // Assert
-            Assert.Equal(2, result._Data!.TotalCount);
-            Assert.All(result._Data.Results, item =>
+            Assert.Equal(2, result.TotalCount);
+            Assert.All(result.Results, item =>
             {
                 Assert.NotNull(item.Group);
                 Assert.NotNull(item.Group.Category);
@@ -66,8 +66,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetCatalogSearchQuery(request);
 
             // Assert
-            Assert.Equal(3, result._Data!.TotalCount); 
-            Assert.Single(result._Data.Results); 
+            Assert.Equal(3, result.TotalCount); 
+            Assert.Single(result.Results); 
         }
 
         private async Task SeedCatalogData()
@@ -106,9 +106,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetCatalogSearchQuery(request);
 
             // Assert
-            Assert.True(result._IsSuccess);
-            Assert.Empty(result._Data!.Results);
-            Assert.Equal(0, result._Data.TotalCount);
+            Assert.Empty(result.Results);
+            Assert.Equal(0, result.TotalCount);
         }
 
         [Fact]
@@ -122,7 +121,7 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetCatalogSearchQuery(request);
 
             // Assert
-            Assert.Equal(3, result._Data!.TotalCount);
+            Assert.Equal(3, result.TotalCount);
         }
 
         [Fact]
@@ -140,9 +139,8 @@ namespace VoltFlow.Service.Test.UnitTests.Repositories
             var result = await _repository.GetCatalogSearchQuery(request);
 
             // Assert
-            Assert.True(result._IsSuccess);
-            Assert.Empty(result._Data!.Results);
-            Assert.Equal(3, result._Data.TotalCount); 
+            Assert.Empty(result.Results);
+            Assert.Equal(3, result.TotalCount); 
         }
     }
 }

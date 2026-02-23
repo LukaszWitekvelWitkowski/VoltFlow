@@ -13,7 +13,7 @@ namespace VoltFlow.Service.Core.Entities
         public DateTime CreateTime { get; set; }
 
         // Zakładam, że masz już zdefiniowany enum StatusDocs
-        public StatusDoc StatusDoc { get; set; }
+        public DocStatus StatusDoc { get; set; }
 
         public decimal TotalNet { get; set; }
 
