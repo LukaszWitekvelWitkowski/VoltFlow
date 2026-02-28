@@ -50,7 +50,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
               );
             }
 
-            var dbQuery = _context.Set<Client>().AsNoTracking();
+            var dbQuery = _context.Set<Client>().AsNoTracking().AsSplitQuery();
 
             if (!string.IsNullOrWhiteSpace(email))
             {
@@ -95,6 +95,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         {
             return await _context.Set<Client>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(c => c.Email == email)
                 .Select(c => MapToDto(c))
                 .FirstOrDefaultAsync(ct);

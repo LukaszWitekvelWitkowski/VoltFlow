@@ -85,6 +85,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             // Fallback do bazy danych
             var dbData = await _context.Set<ClientAddress>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(a => a.ClientId == clientId)
                 .Select(e => MapToDto(e))
                 .ToListAsync(ct);

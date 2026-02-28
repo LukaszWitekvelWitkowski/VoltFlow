@@ -21,6 +21,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         {
 
             var elemntGroupExists = await _context.Set<ElementGroup>()
+                .AsNoTracking()
                 .AnyAsync(eg => eg.IdElementGroup == request.ElementGroupId);
 
             if (!elemntGroupExists)
@@ -63,6 +64,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             return await _context.Set<Element>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(e => e.IdElement == id)
                 .Select(e => MapToDto(e))
                 .FirstOrDefaultAsync();
@@ -97,7 +99,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             }
 
    
-            var dbQuery = _context.Set<Element>().AsNoTracking();
+            var dbQuery = _context.Set<Element>().AsNoTracking().AsSplitQuery();
 
             if (!string.IsNullOrWhiteSpace(name))
             {
@@ -120,6 +122,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         {
             // 1. Aktualizacja w bazie
             var element = await _context.Set<Element>()
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(e => e.IdElement == request.Id);
 
             if (element == null)
@@ -149,8 +152,9 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                                                && e.Name.ToLower() == normalizedName);
             }
 
-            // Jeśli cache wyłączony - standardowe szybkie zapytanie SQL
             return await _context.Set<Element>()
+                .AsNoTracking()
+                .AsSplitQuery()
                 .AnyAsync(e => (id == null || e.IdElement != id)
                                && e.Name.ToLower() == normalizedName);
         }

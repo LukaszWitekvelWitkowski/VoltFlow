@@ -15,12 +15,12 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            return await _context.Set<User>().FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Set<User>().AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<User?> GetByIdAsync(int userId, CancellationToken ct)
         {
-            return await _context.Set<User>().FirstOrDefaultAsync(u => u.Id == userId, ct);
+            return await _context.Set<User>().AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct);
         }
 
         public async Task<UserDto?> GetUserDtoByEmailAsync(string email)
