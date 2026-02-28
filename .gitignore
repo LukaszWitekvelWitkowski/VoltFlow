@@ -75,3 +75,4 @@ last_schema.sql
 # If you use User Secrets for local development
 secrets.json
 
+/apps/web/VoltFlow.Service/src/VoltFlow.Service.API/logs

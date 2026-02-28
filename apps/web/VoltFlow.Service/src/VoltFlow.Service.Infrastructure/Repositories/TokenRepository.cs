@@ -23,6 +23,8 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         public async Task<VerificationToken?> GetActiveTokenAsync(int userId, string hashedToken, TokenType type, CancellationToken ct)
         {
             return await _context.VerificationTokens
+                         .AsNoTracking()
+                         .AsSplitQuery()
                          .FirstOrDefaultAsync(t =>
                              t.UserId == userId &&
                              t.TokenHash == hashedToken &&

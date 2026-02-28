@@ -22,6 +22,8 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         {
             // Sprawdzamy czy kategoria istnieje (szybki AnyAsync)
             var categoryExists = await _context.Set<Category>()
+                .AsNoTracking()
+                .AsSplitQuery()
                 .AnyAsync(c => c.IdCategory == request.CategoryId);
 
             if (!categoryExists)
@@ -46,6 +48,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         public async Task<ElementGroupDTO> UpdateElementGroup(UpdateElementGroupRequest request)
         {
             var elementGroup = await _context.Set<ElementGroup>()
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(eg => eg.IdElementGroup == request.IdElementGroup);
 
             if (elementGroup == null)
@@ -79,6 +82,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             return await _context.Set<ElementGroup>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(eg => eg.IdElementGroup == id)
                 .Select(eg => MapToDto(eg))
                 .FirstOrDefaultAsync();
@@ -139,6 +143,8 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             }
 
             return await _context.Set<ElementGroup>()
+                .AsNoTracking()
+                .AsSplitQuery()
                 .AnyAsync(eg => (id == null || eg.IdElementGroup != id)
                                 && eg.Name.ToLower() == normalizedName);
         }

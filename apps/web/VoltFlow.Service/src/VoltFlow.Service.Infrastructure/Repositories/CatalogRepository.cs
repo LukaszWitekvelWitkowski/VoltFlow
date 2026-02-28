@@ -61,34 +61,36 @@ namespace VoltFlow.Service.Infrastructure.Repositories
                         ? query.Where(e => EF.Functions.ILike(e.ElementGroup.Category.Name, $"%{request.CategoryName}%"))
                         : query.Where(e => e.ElementGroup.Category.Name.ToLower().Contains(request.CategoryName.ToLower()));
                 }
-            }
 
 
-            var totalCount = await query.CountAsync();
 
-        
-            var items = await query
-                .OrderBy(e => e.Name)
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .Select(e => new ElementTreeDTO
-                {
-                    Id = e.IdElement,
-                    Name = e.Name,
-                    Group = new ElementGroupSimpleDTO
+                var totalCount = await query.CountAsync();
+
+
+                var items = await query
+                    .OrderBy(e => e.Name)
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .Select(e => new ElementTreeDTO
                     {
-                        Id = e.ElementGroup.IdElementGroup,
-                        Name = e.ElementGroup.Name,
-                        Category = new CategorySimpleDTO
+                        Id = e.IdElement,
+                        Name = e.Name,
+                        Group = new ElementGroupSimpleDTO
                         {
-                            Id = e.ElementGroup.Category.IdCategory,
-                            Name = e.ElementGroup.Category.Name
+                            Id = e.ElementGroup.IdElementGroup,
+                            Name = e.ElementGroup.Name,
+                            Category = new CategorySimpleDTO
+                            {
+                                Id = e.ElementGroup.Category.IdCategory,
+                                Name = e.ElementGroup.Category.Name
+                            }
                         }
-                    }
-                })
-                .ToListAsync();
+                    })
+                    .ToListAsync();
 
-            return new PagedResultDTO<ElementTreeDTO>(items, totalCount, request.PageNumber, request.PageSize);
+                return new PagedResultDTO<ElementTreeDTO>(items, totalCount, request.PageNumber, request.PageSize);
+            }
+            throw new NotImplementedException("Empty request");
         }
     }
 }

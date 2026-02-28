@@ -44,6 +44,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
             var category = await _context.Set<Category>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(c => c.IdCategory == id)
                 .Select(c => MapToDto(c))
                 .FirstOrDefaultAsync();
@@ -125,6 +126,8 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             }
 
             return await _context.Set<Category>()
+                .AsNoTracking()
+                .AsSplitQuery()
                 .AnyAsync(c => (id == null || c.IdCategory != id)
                                 && c.Name.ToLower() == normalizedName);
         }
@@ -152,6 +155,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             // Fallback do bazy danych, jeśli cache jest wyłączony
             return await _context.Set<Category>()
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(c => c.Name.ToLower() == normalizedName)
                 .Select(c => MapToDto(c))
                 .FirstOrDefaultAsync();

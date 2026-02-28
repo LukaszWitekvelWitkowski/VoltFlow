@@ -6,7 +6,7 @@ using VoltFlow.Service.Infrastructure.Data;
 namespace VoltFlow.Service.Infrastructure.Repositories
 {
     public abstract class CacheRepository<T, D, TEntity> : BaseRepository
-        where T : class, ICacheData<D>, new() // new() pozwala na 'new T()'
+        where T : class, ICacheData<D>, new() 
         where D : class
         where TEntity : class
     {
@@ -28,7 +28,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
         protected async Task<IEnumerable<D>> FetchFromDbInternal()
         {
-            var data = await _context.Set<TEntity>().AsNoTracking().ToListAsync();
+            var data = await _context.Set<TEntity>().AsNoTracking().AsSplitQuery().ToListAsync();
             return data.Select(MapToDto);
         }
 

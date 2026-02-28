@@ -57,6 +57,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
 
            return await _context.Set<TaskEntity>()
                                 .AsNoTracking()
+                                .AsSplitQuery()
                                 .Where(t => t.IdTask == id)
                                 .Select(t => MapToDto(t))
                                 .FirstOrDefaultAsync();
@@ -79,7 +80,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             }
 
             // Fallback SQL
-            var dbQuery = _context.Set<TaskEntity>().AsNoTracking();
+            var dbQuery = _context.Set<TaskEntity>().AsNoTracking().AsSplitQuery();
             if (!string.IsNullOrWhiteSpace(name))
             {
                 var search = name.Trim().ToLower();
@@ -125,6 +126,8 @@ namespace VoltFlow.Service.Infrastructure.Repositories
             }
 
             return await _context.Set<TaskEntity>()
+                .AsNoTracking()
+                .AsSplitQuery()
                 .AnyAsync(t => (excludeId == null || t.IdTask != excludeId)
                                && t.TypeTask == type
                                && t.Description.ToLower() == normalizedDesc);

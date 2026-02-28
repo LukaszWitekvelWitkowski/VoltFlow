@@ -22,6 +22,7 @@ namespace VoltFlow.Service.Infrastructure.Repositories
         public async Task<EmailTemplate?> GetTemplateByTypeAsync(EmailType type, CancellationToken ct = default)
         {
             return await _context.EmailTemplates
+            .AsNoTracking()
             .FirstOrDefaultAsync(t => t.EmailType == type, ct);
         }
 
